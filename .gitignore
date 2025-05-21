@@ -34,7 +34,6 @@ env/
 # Project specific
 data/raw/*
 data/processed/*
-models/*
 logs/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
