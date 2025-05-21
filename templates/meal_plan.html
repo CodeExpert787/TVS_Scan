@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Meal Plan - PCOS Analysis System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .meal-card {
+        transition: transform 0.2s;
+    }
+    .meal-card:hover {
+        transform: translateY(-5px);
+    }
+    .meal-time {
+        font-size: 1.2rem;
+        color: #6c5ce7;
+    }
+    .nutrition-info {
+        font-size: 0.9rem;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0"><i class="fas fa-utensils me-2"></i>Personalized Meal Plan</h2>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Daily Summary</h3>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="h6">Calories</h4>
+                                            <p class="mb-0">{{ total_calories }} kcal</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="h6">Protein</h4>
+                                            <p class="mb-0">{{ total_protein }}g</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="h6">Carbs</h4>
+                                            <p class="mb-0">{{ total_carbs }}g</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="h6">Fat</h4>
+                                            <p class="mb-0">{{ total_fat }}g</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% for day in meal_plan %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Day {{ loop.index }}</h3>
+                        <div class="row">
+                            {% for meal in day %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card meal-card h-100">
+                                    <div class="card-body">
+                                        <h4 class="meal-time mb-3">{{ meal.time }}</h4>
+                                        <h5 class="card-title">{{ meal.name }}</h5>
+                                        <p class="card-text">{{ meal.description }}</p>
+                                        <div class="nutrition-info">
+                                            <p class="mb-1">Calories: {{ meal.calories }} kcal</p>
+                                            <p class="mb-1">Protein: {{ meal.protein }}g</p>
+                                            <p class="mb-1">Carbs: {{ meal.carbs }}g</p>
+                                            <p class="mb-0">Fat: {{ meal.fat }}g</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Dietary Guidelines</h3>
+                        <div class="card">
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    {% for guideline in dietary_guidelines %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        {{ guideline }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button class="btn btn-primary" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print Meal Plan
+                    </button>
+                    <a href="/analyze" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo me-2"></i>New Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add print-specific styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @media print {
+            .navbar, .footer, .btn {
+                display: none !important;
+            }
+            .card {
+                break-inside: avoid;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %} 
