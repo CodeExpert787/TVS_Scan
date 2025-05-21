@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results - PCOS Analysis System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-card {
+        transition: transform 0.2s;
+    }
+    .result-card:hover {
+        transform: translateY(-5px);
+    }
+    .probability-bar {
+        height: 25px;
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0"><i class="fas fa-chart-pie me-2"></i>Analysis Results</h2>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h3 class="h5">PCOS Type Prediction</h3>
+                        <div class="card result-card">
+                            <div class="card-body">
+                                <h4 class="card-title">{{ pcos_type }}</h4>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ probability }}%" 
+                                         aria-valuenow="{{ probability }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ probability }}%
+                                    </div>
+                                </div>
+                                <p class="card-text">{{ type_description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h3 class="h5">Key Metrics</h3>
+                        <div class="card result-card">
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        BMI
+                                        <span class="badge bg-primary rounded-pill">{{ bmi }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Age
+                                        <span class="badge bg-primary rounded-pill">{{ age }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Symptoms Count
+                                        <span class="badge bg-primary rounded-pill">{{ symptoms_count }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Recommendations</h3>
+                        <div class="card result-card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <h4 class="h6"><i class="fas fa-utensils me-2"></i>Dietary</h4>
+                                        <ul class="list-unstyled">
+                                            {% for rec in dietary_recommendations %}
+                                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ rec }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h4 class="h6"><i class="fas fa-running me-2"></i>Lifestyle</h4>
+                                        <ul class="list-unstyled">
+                                            {% for rec in lifestyle_recommendations %}
+                                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ rec }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h4 class="h6"><i class="fas fa-heartbeat me-2"></i>Medical</h4>
+                                        <ul class="list-unstyled">
+                                            {% for rec in medical_recommendations %}
+                                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ rec }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="/meal-plan" class="btn btn-primary">
+                        <i class="fas fa-utensils me-2"></i>Generate Meal Plan
+                    </a>
+                    <a href="/analyze" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo me-2"></i>New Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

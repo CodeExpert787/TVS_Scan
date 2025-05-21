@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze - PCOS Analysis System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-label {
+        font-weight: 500;
+    }
+    .required-field::after {
+        content: " *";
+        color: red;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0"><i class="fas fa-chart-line me-2"></i>PCOS Analysis Form</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/analyze" class="needs-validation" novalidate>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="age" class="form-label required-field">Age</label>
+                            <input type="number" class="form-control" id="age" name="age" required min="12" max="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="weight" class="form-label required-field">Weight (kg)</label>
+                            <input type="number" class="form-control" id="weight" name="weight" required step="0.1" min="20" max="300">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="height" class="form-label required-field">Height (cm)</label>
+                            <input type="number" class="form-control" id="height" name="height" required min="100" max="250">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="bmi" class="form-label">BMI</label>
+                            <input type="number" class="form-control" id="bmi" name="bmi" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="menstrual_cycle" class="form-label">Menstrual Cycle Length (days)</label>
+                        <input type="number" class="form-control" id="menstrual_cycle" name="menstrual_cycle_length" min="1" max="90">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Symptoms (Select all that apply)</label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="symptoms" value="irregular_periods" id="symptom1">
+                                    <label class="form-check-label" for="symptom1">Irregular Periods</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="symptoms" value="acne" id="symptom2">
+                                    <label class="form-check-label" for="symptom2">Acne</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="symptoms" value="hair_loss" id="symptom3">
+                                    <label class="form-check-label" for="symptom3">Hair Loss</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="medical_history" class="form-label">Medical History</label>
+                        <textarea class="form-control" id="medical_history" name="medical_history" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="medications" class="form-label">Current Medications</label>
+                        <textarea class="form-control" id="medications" name="medications" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="allergies" class="form-label">Allergies</label>
+                        <textarea class="form-control" id="allergies" name="allergies" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dietary_restrictions" class="form-label">Dietary Restrictions</label>
+                        <textarea class="form-control" id="dietary_restrictions" name="dietary_restrictions" rows="2"></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="activity_level" class="form-label">Activity Level</label>
+                            <select class="form-select" id="activity_level" name="activity_level">
+                                <option value="sedentary">Sedentary</option>
+                                <option value="lightly_active">Lightly Active</option>
+                                <option value="moderately_active">Moderately Active</option>
+                                <option value="very_active">Very Active</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sleep_hours" class="form-label">Average Sleep Hours</label>
+                            <input type="number" class="form-control" id="sleep_hours" name="sleep_hours" min="0" max="24" step="0.5">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stress_level" class="form-label">Stress Level (1-10)</label>
+                        <input type="range" class="form-range" id="stress_level" name="stress_level" min="1" max="10" value="5">
+                        <div class="text-center" id="stress_level_value">5</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>Analyze
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Calculate BMI automatically
+    document.getElementById('weight').addEventListener('input', calculateBMI);
+    document.getElementById('height').addEventListener('input', calculateBMI);
+
+    function calculateBMI() {
+        const weight = parseFloat(document.getElementById('weight').value);
+        const height = parseFloat(document.getElementById('height').value) / 100; // convert to meters
+        if (weight && height) {
+            const bmi = (weight / (height * height)).toFixed(1);
+            document.getElementById('bmi').value = bmi;
+        }
+    }
+
+    // Update stress level value display
+    document.getElementById('stress_level').addEventListener('input', function() {
+        document.getElementById('stress_level_value').textContent = this.value;
+    });
+
+    // Form validation
+    (function() {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %} 
