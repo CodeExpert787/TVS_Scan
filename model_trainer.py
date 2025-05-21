@@ -3,11 +3,16 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from typing import Dict, Any, List, Tuple
+import os
 
 class ModelTrainer:
-    def __init__(self):
+    def __init__(self, models_dir: str = 'models'):
+        self.models_dir = models_dir
         self.model = RandomForestClassifier(n_estimators=100, random_state=42)
         self.scaler = StandardScaler()
+        
+        # Create models directory if it doesn't exist
+        os.makedirs(models_dir, exist_ok=True)
         
     def prepare_features(self, data: Dict[str, Any]) -> np.ndarray:
         """Convert patient data into model features."""
@@ -38,16 +43,20 @@ class ModelTrainer:
         probability = np.max(self.model.predict_proba(features_scaled))
         return prediction, probability
     
-    def save_model(self, model_path: str = 'models/pcos_model.joblib') -> None:
+    def save_model(self, model_path: str = None) -> None:
         """Save the trained model and scaler."""
+        if model_path is None:
+            model_path = os.path.join(self.models_dir, 'pcos_model.joblib')
         model_data = {
             'model': self.model,
             'scaler': self.scaler
         }
         joblib.dump(model_data, model_path)
     
-    def load_model(self, model_path: str = 'models/pcos_model.joblib') -> None:
+    def load_model(self, model_path: str = None) -> None:
         """Load a trained model and scaler."""
+        if model_path is None:
+            model_path = os.path.join(self.models_dir, 'pcos_model.joblib')
         model_data = joblib.load(model_path)
         self.model = model_data['model']
         self.scaler = model_data['scaler'] 
