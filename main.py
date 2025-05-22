@@ -110,6 +110,11 @@ async def get_home(request:Request):
     """Serve the main page"""
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/training", response_class=HTMLResponse)
+async def get_training_page(request:Request):
+    """Serve the training page"""
+    return templates.TemplateResponse("training.html", {"request": request})
+
 @app.get("/analyze", response_class=HTMLResponse)
 async def get_analyze_page(request:Request):
     """Serve the analyze page"""
