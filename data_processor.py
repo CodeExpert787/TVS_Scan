@@ -4,7 +4,7 @@ from typing import List, Dict, Tuple
 from models.pcos_patient import PatientData, PCOSType
 import os
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 class DataProcessor:
     def __init__(self, data_dir: str):
@@ -15,6 +15,7 @@ class DataProcessor:
         """
         self.data_dir = data_dir
         self.scaler = StandardScaler()
+        self.label_encoder = LabelEncoder()
         
     def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
@@ -66,7 +67,7 @@ class DataProcessor:
                 'bmi': 0.0,
                 'healthy_weight_range': (0.0, 0.0),
                 'water_intake': 0.0,
-                'pcos_types': [],
+                'pcos_type': None,  # Changed from pcos_types list to single pcos_type
                 'waist_measurement': None
             }
             
@@ -90,8 +91,8 @@ class DataProcessor:
         # Scale features
         scaled_features = self.scaler.fit_transform(features)
         
-        # Extract labels (PCOS types)
-        labels = df['pcos_types'].values
+        # Extract and encode labels (PCOS type)
+        labels = self.label_encoder.fit_transform(df['pcos_type'].values)
         
         return scaled_features, labels
     
@@ -108,6 +109,9 @@ class DataProcessor:
         train_data.to_csv(os.path.join(output_dir, 'train_data.csv'), index=False)
         test_data.to_csv(os.path.join(output_dir, 'test_data.csv'), index=False)
         
-        # Save scaler for later use
+        # Save scaler and label encoder for later use
         import joblib
-        joblib.dump(self.scaler, os.path.join(output_dir, 'scaler.joblib')) 
+        joblib.dump({
+            'scaler': self.scaler,
+            'label_encoder': self.label_encoder
+        }, os.path.join(output_dir, 'preprocessors.joblib')) 
