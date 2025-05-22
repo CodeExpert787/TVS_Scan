@@ -19,6 +19,10 @@
         display: block;
         opacity: 1;
     }
+    .btn-group {
+        display: flex;
+        gap: 10px;
+    }
 </style>
 {% endblock %}
 
@@ -36,9 +40,14 @@
                 <label for="trainingFile" class="form-label">Select Training Data File</label>
                 <input type="file" class="form-control" id="trainingFile" name="file" accept=".docx,.csv,.xlsx">
             </div>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-upload me-2"></i>Upload File
-            </button>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Upload File
+                </button>
+                <button type="button" id="startTrainingBtn" class="btn btn-success" disabled>
+                    <i class="fas fa-play me-2"></i>Start Training
+                </button>
+            </div>
         </form>
     </div>
 </div>
@@ -60,9 +69,6 @@
                 </div>
             </div>
             <div id="lastTrained" class="text-muted"></div>
-            <button id="startTrainingBtn" class="btn btn-success mt-3" disabled>
-                <i class="fas fa-play me-2"></i>Start Training
-            </button>
         </div>
     </div>
 </div>
@@ -141,6 +147,9 @@
         })
         .then(response => response.json())
         .then(data => {
+            // Show training status section immediately when training starts
+            const trainingStatus = document.getElementById('trainingStatus');
+            trainingStatus.classList.add('visible');
             updateTrainingStatus();
         })
         .catch(error => {
