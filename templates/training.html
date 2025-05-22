@@ -48,8 +48,9 @@
     <div class="card-body">
         <form id="uploadForm" enctype="multipart/form-data">
             <div class="mb-3">
-                <label for="trainingFile" class="form-label">Select Training Data File</label>
-                <input type="file" class="form-control" id="trainingFile" name="file" accept=".docx,.csv,.xlsx">
+                <label for="trainingFile" class="form-label">Select Training Data Files</label>
+                <input type="file" class="form-control" id="trainingFile" name="files" accept=".docx,.csv,.xlsx" multiple>
+                <div class="form-text">You can select multiple files by holding Ctrl (Windows) or Command (Mac) while clicking.</div>
             </div>
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary">
@@ -187,9 +188,13 @@
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         e.preventDefault();
         const fileInput = document.getElementById('trainingFile');
-        const file = fileInput.files[0];
+        const files = fileInput.files;
         const formData = new FormData();
-        formData.append('file', file);
+        
+        // Append each file to the FormData
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
 
         fetch('/upload-training-data', {
             method: 'POST',
@@ -197,12 +202,12 @@
         })
         .then(response => response.json())
         .then(data => {
-            alert('File uploaded successfully!');
+            alert(`${files.length} file(s) uploaded successfully!`);
             document.getElementById('startTrainingBtn').disabled = false;
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error uploading file');
+            alert('Error uploading files');
         });
     });
 

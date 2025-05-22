@@ -18,6 +18,19 @@
         font-size: 0.9rem;
         color: #666;
     }
+    .portion-info {
+        font-size: 0.85rem;
+        color: #888;
+        font-style: italic;
+    }
+    .meal-notes {
+        font-size: 0.9rem;
+        color: #666;
+        font-style: italic;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
 </style>
 {% endblock %}
 
@@ -29,6 +42,32 @@
                 <h2 class="h4 mb-0"><i class="fas fa-utensils me-2"></i>Personalized Meal Plan</h2>
             </div>
             <div class="card-body">
+                <!-- Patient Info -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Patient Information</h3>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <p class="mb-1"><strong>Name:</strong> {{ meal_plan.patient_info.name }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="mb-1"><strong>BMI:</strong> {{ meal_plan.patient_info.bmi }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="mb-1"><strong>Water Intake:</strong> {{ meal_plan.patient_info.water_intake }}</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="mb-1"><strong>Healthy Weight Range:</strong> {{ meal_plan.patient_info.healthy_weight_range }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Summary -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <h3 class="h5">Daily Summary</h3>
@@ -38,25 +77,25 @@
                                     <div class="col-md-3">
                                         <div class="text-center">
                                             <h4 class="h6">Calories</h4>
-                                            <p class="mb-0">{{ total_calories }} kcal</p>
+                                            <p class="mb-0">{{ meal_plan.total_nutrition.calories }} kcal</p>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="text-center">
                                             <h4 class="h6">Protein</h4>
-                                            <p class="mb-0">{{ total_protein }}g</p>
+                                            <p class="mb-0">{{ meal_plan.total_nutrition.protein }}g</p>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="text-center">
                                             <h4 class="h6">Carbs</h4>
-                                            <p class="mb-0">{{ total_carbs }}g</p>
+                                            <p class="mb-0">{{ meal_plan.total_nutrition.carbs }}g</p>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="text-center">
                                             <h4 class="h6">Fat</h4>
-                                            <p class="mb-0">{{ total_fat }}g</p>
+                                            <p class="mb-0">{{ meal_plan.total_nutrition.fat }}g</p>
                                         </div>
                                     </div>
                                 </div>
@@ -65,23 +104,128 @@
                     </div>
                 </div>
 
-                {% for day in meal_plan %}
+                <!-- Breakfast -->
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h3 class="h5">Day {{ loop.index }}</h3>
+                        <h3 class="h5">Breakfast Options</h3>
                         <div class="row">
-                            {% for meal in day %}
+                            {% for option in meal_plan.breakfast.options %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card meal-card h-100">
+                                    <div class="card-body">
+                                        <h4 class="meal-time mb-3">{{ option.name }}</h4>
+                                        <p class="card-text">{{ option.description }}</p>
+                                        <div class="nutrition-info">
+                                            <p class="mb-1">Calories: {{ option.calories }} kcal</p>
+                                            <p class="mb-1">Protein: {{ option.protein }}g</p>
+                                            <p class="mb-1">Carbs: {{ option.carbs }}g</p>
+                                            <p class="mb-0">Fat: {{ option.fat }}g</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="meal-notes">
+                            <i class="fas fa-info-circle me-2"></i>{{ meal_plan.breakfast.notes }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lunch -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Lunch Options</h3>
+                        <div class="row">
+                            <!-- Protein Options -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card meal-card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Protein Options</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for option in meal_plan.lunch.protein.options %}
+                                        <div class="mb-3">
+                                            <h6 class="mb-1">{{ option.name }}</h6>
+                                            <p class="portion-info mb-1">Portion: {{ option.portion }}</p>
+                                            <div class="nutrition-info">
+                                                <p class="mb-1">Calories: {{ option.calories }} kcal</p>
+                                                <p class="mb-1">Protein: {{ option.protein }}g</p>
+                                                <p class="mb-1">Carbs: {{ option.carbs }}g</p>
+                                                <p class="mb-0">Fat: {{ option.fat }}g</p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Carb Options -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card meal-card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Carb Options</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for option in meal_plan.lunch.carbs.options %}
+                                        <div class="mb-3">
+                                            <h6 class="mb-1">{{ option.name }}</h6>
+                                            <p class="portion-info mb-1">Portion: {{ option.portion }}</p>
+                                            <div class="nutrition-info">
+                                                <p class="mb-1">Calories: {{ option.calories }} kcal</p>
+                                                <p class="mb-1">Protein: {{ option.protein }}g</p>
+                                                <p class="mb-1">Carbs: {{ option.carbs }}g</p>
+                                                <p class="mb-0">Fat: {{ option.fat }}g</p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vegetable Options -->
+                            <div class="col-md-4 mb-3">
+                                <div class="card meal-card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Vegetable Options</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for option in meal_plan.lunch.vegetables.options %}
+                                        <div class="mb-3">
+                                            <h6 class="mb-1">{{ option.name }}</h6>
+                                            <p class="portion-info mb-1">Portion: {{ option.portion }}</p>
+                                            <p class="mb-1">{{ option.description }}</p>
+                                            <div class="nutrition-info">
+                                                <p class="mb-1">Calories: {{ option.calories }} kcal</p>
+                                                <p class="mb-1">Protein: {{ option.protein }}g</p>
+                                                <p class="mb-1">Carbs: {{ option.carbs }}g</p>
+                                                <p class="mb-0">Fat: {{ option.fat }}g</p>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Snacks -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Snack Options</h3>
+                        <div class="row">
+                            {% for snack in meal_plan.lunch.snacks %}
                             <div class="col-md-4 mb-3">
                                 <div class="card meal-card h-100">
                                     <div class="card-body">
-                                        <h4 class="meal-time mb-3">{{ meal.time }}</h4>
-                                        <h5 class="card-title">{{ meal.name }}</h5>
-                                        <p class="card-text">{{ meal.description }}</p>
+                                        <h4 class="meal-time mb-3">{{ snack.name }}</h4>
+                                        <p class="portion-info mb-2">Portion: {{ snack.portion }}</p>
                                         <div class="nutrition-info">
-                                            <p class="mb-1">Calories: {{ meal.calories }} kcal</p>
-                                            <p class="mb-1">Protein: {{ meal.protein }}g</p>
-                                            <p class="mb-1">Carbs: {{ meal.carbs }}g</p>
-                                            <p class="mb-0">Fat: {{ meal.fat }}g</p>
+                                            <p class="mb-1">Calories: {{ snack.calories }} kcal</p>
+                                            <p class="mb-1">Protein: {{ snack.protein }}g</p>
+                                            <p class="mb-1">Carbs: {{ snack.carbs }}g</p>
+                                            <p class="mb-0">Fat: {{ snack.fat }}g</p>
                                         </div>
                                     </div>
                                 </div>
@@ -90,8 +234,74 @@
                         </div>
                     </div>
                 </div>
-                {% endfor %}
 
+                <!-- Fruits -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Fruit Options</h3>
+                        <div class="row">
+                            {% for fruit in meal_plan.lunch.fruits %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card meal-card h-100">
+                                    <div class="card-body">
+                                        <h4 class="meal-time mb-3">{{ fruit.name }}</h4>
+                                        <p class="portion-info mb-2">Portion: {{ fruit.portion }}</p>
+                                        <div class="nutrition-info">
+                                            <p class="mb-1">Calories: {{ fruit.calories }} kcal</p>
+                                            <p class="mb-1">Protein: {{ fruit.protein }}g</p>
+                                            <p class="mb-1">Carbs: {{ fruit.carbs }}g</p>
+                                            <p class="mb-0">Fat: {{ fruit.fat }}g</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exercise Plan -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Exercise Plan</h3>
+                        <div class="card">
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    {% for exercise in meal_plan.exercise_plan.weekly_plan %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        {{ exercise }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="meal-notes">
+                                    <i class="fas fa-info-circle me-2"></i>{{ meal_plan.exercise_plan.notes }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Supplements -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="h5">Supplement Recommendations</h3>
+                        <div class="card">
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0">
+                                    {% for supplement in meal_plan.supplements.recommendations %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-pills text-primary me-2"></i>
+                                        {{ supplement }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dietary Guidelines -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <h3 class="h5">Dietary Guidelines</h3>

@@ -4,9 +4,8 @@ from pydantic import BaseModel
 
 class PCOSType(str, Enum):
     """Enum for different types of PCOS."""
-    INSULIN_RESISTANCE = "PCOS Rintangan Insulin"
-    ADRENAL = "PCOS Adrenal"
-    COMBINED = "PCOS Rintangan Insulin + PCOS Adrenal"
+    INSULIN_RESISTANCE = "Rintangan Insulin"
+    ADRENAL = "Adrenal"
     UNKNOWN = "Unknown"
 
 class PatientData(BaseModel):
@@ -18,8 +17,8 @@ class PatientData(BaseModel):
     bmi: float
     healthy_weight_range: tuple[float, float]
     water_intake: float
-    pcos_type: PCOSType
-    waist_measurement: Optional[float] = None
+    pcos_type: str  # Changed from PCOSType to str
+    waist_measurement: Optional[float]
     menstrual_cycle_length: Optional[int] = None
     symptoms: List[str] = []
     medical_history: Optional[str] = None
@@ -28,4 +27,4 @@ class PatientData(BaseModel):
     dietary_restrictions: List[str] = []
     activity_level: Optional[str] = None
     sleep_hours: Optional[float] = None
-    stress_level: Optional[int] = None  # 1-10 scale 
+    stress_level: Optional[int] = None 

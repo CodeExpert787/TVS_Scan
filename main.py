@@ -12,6 +12,7 @@ import os
 import shutil
 import logging
 from datetime import datetime
+from starlette.middleware.sessions import SessionMiddleware
 
 # Set up logging
 logging.basicConfig(
@@ -30,6 +31,9 @@ app = FastAPI(
     description="A personalized meal plan generator for PCOS patients based on their test results and physical data",
     version="1.0.0"
 )
+
+# Add session middleware
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key-here")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -115,37 +119,111 @@ async def get_home(request:Request):
     """Serve the main page"""
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/about", response_class=HTMLResponse)
+async def get_about_page(request: Request):
+    """Serve the about page"""
+    return templates.TemplateResponse("about.html", {"request": request})
+
 @app.get("/training", response_class=HTMLResponse)
 async def get_training_page(request:Request):
     """Serve the training page"""
     return templates.TemplateResponse("training.html", {"request": request})
 
 @app.get("/analyze", response_class=HTMLResponse)
-async def get_analyze_page(request:Request):
+async def get_analyze_page(request: Request):
     """Serve the analyze page"""
-    return templates.TemplateResponse("analyze.html", {"request": request})
+    return templates.TemplateResponse(
+        "analyze.html",
+        {
+            "request": request,
+            "form_values": {},
+            "show_results": False,
+            "recommendations": None,
+            "error": None
+        }
+    )
 
 @app.get("/meal-plan", response_class=HTMLResponse)
-async def get_meal_plan_page(request:Request):
-    """Serve the analyze page"""
-    return templates.TemplateResponse("meal_plan.html", {"request": request})
+async def get_meal_plan_page(request: Request):
+    """Serve the meal plan page with generated meal plan"""
+    try:
+        # Get the patient data from the session or request
+        patient_data = request.session.get('patient_data')
+        if not patient_data:
+            return templates.TemplateResponse(
+                "meal_plan.html",
+                {
+                    "request": request,
+                    "error": "Please complete the analysis first to generate a meal plan."
+                }
+            )
+
+        # Generate meal plan
+        meal_plan = meal_plan_generator.generate_meal_plan(patient_data)
+        
+        # Generate dietary guidelines based on PCOS type
+        dietary_guidelines = []
+        pcos_type = patient_data.get("pcos_type", "")
+        
+        if "Rintangan Insulin" in pcos_type:
+            dietary_guidelines.extend([
+                "Focus on low glycemic index foods",
+                "Include protein with every meal",
+                "Limit refined carbohydrates",
+                "Choose complex carbs over simple sugars"
+            ])
+        elif "Adrenal" in pcos_type:
+            dietary_guidelines.extend([
+                "Anti-inflammatory diet",
+                "Omega-3 rich foods",
+                "Limit caffeine and alcohol",
+                "Include magnesium-rich foods"
+            ])
+        else:
+            dietary_guidelines.extend([
+                "Balanced low-glycemic diet",
+                "Regular meal timing",
+                "Anti-inflammatory foods",
+                "Adequate protein intake"
+            ])
+
+        return templates.TemplateResponse(
+            "meal_plan.html",
+            {
+                "request": request,
+                "meal_plan": meal_plan,
+                "dietary_guidelines": dietary_guidelines
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error generating meal plan: {str(e)}")
+        return templates.TemplateResponse(
+            "meal_plan.html",
+            {
+                "request": request,
+                "error": "Error generating meal plan. Please try again."
+            }
+        )
 
 @app.post("/upload-training-data")
-async def upload_training_data(file: UploadFile = File(...)):
+async def upload_training_data(files: List[UploadFile] = File(...)):
     """
-    Upload a training data file (docx)
+    Upload multiple training data files (docx, csv, xlsx)
     """
     try:
         # Create data/raw directory if it doesn't exist
         os.makedirs('data/raw', exist_ok=True)
         
-        # Save the uploaded file
-        file_path = os.path.join('data/raw', file.filename)
-        save_upload_file(file, file_path)
+        uploaded_files = []
+        # Save each uploaded file
+        for file in files:
+            file_path = os.path.join('data/raw', file.filename)
+            save_upload_file(file, file_path)
+            uploaded_files.append(file.filename)
         
         return JSONResponse(
             status_code=200,
-            content={"message": f"File {file.filename} uploaded successfully"}
+            content={"message": f"{len(uploaded_files)} files uploaded successfully", "files": uploaded_files}
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -207,7 +285,7 @@ def generate_recommendations(patient_data: PatientData) -> dict:
     }
     
     # PCOS Type specific recommendations
-    if patient_data.pcos_type == PCOSType.INSULIN_RESISTANCE.value:
+    if patient_data.pcos_type == "Rintangan Insulin":
         recommendations["dietary_recommendations"].extend([
             "Focus on low glycemic index foods",
             "Include protein with every meal",
@@ -230,7 +308,7 @@ def generate_recommendations(patient_data: PatientData) -> dict:
             "Magnesium"
         ])
     
-    elif patient_data.pcos_type == PCOSType.ADRENAL.value:
+    elif patient_data.pcos_type == "Adrenal":
         recommendations["dietary_recommendations"].extend([
             "Anti-inflammatory diet",
             "Omega-3 rich foods",
@@ -253,7 +331,7 @@ def generate_recommendations(patient_data: PatientData) -> dict:
             "Adaptogenic herbs (consult doctor)"
         ])
     
-    elif patient_data.pcos_type == PCOSType.COMBINED.value:
+    else:  # Unknown or combined
         recommendations["dietary_recommendations"].extend([
             "Balanced low-glycemic diet",
             "Regular meal timing",
@@ -302,79 +380,106 @@ def generate_recommendations(patient_data: PatientData) -> dict:
     
     return recommendations
 
-@app.route('/analyze', methods=['GET', 'POST'])
+@app.post("/analyze", response_class=HTMLResponse)
 async def analyze(request: Request):
     """Analyze patient data and generate recommendations."""
-    if request.method == 'POST':
-        try:
-            form_data = await request.form()
-            
-            # Get form data
-            name = form_data.get('name', '')
-            age = int(form_data.get('age', 0))
-            weight = float(form_data.get('weight', 0))
-            height = float(form_data.get('height', 0))
-            bmi = float(form_data.get('bmi', 0))
-            water_intake = float(form_data.get('water_intake', 0))
-            waist_measurement = float(form_data.get('waist_measurement', 0))
-            pcos_type = form_data.get('pcos_type', PCOSType.UNKNOWN.value)
-            
-            # Get optional form data
-            menstrual_cycle_length = form_data.get('menstrual_cycle_length')
-            symptoms = form_data.getlist('symptoms')
-            medical_history = form_data.get('medical_history')
-            medications = form_data.get('medications', '').split('\n')
-            allergies = form_data.get('allergies', '').split('\n')
-            dietary_restrictions = form_data.get('dietary_restrictions', '').split('\n')
-            activity_level = form_data.get('activity_level')
-            sleep_hours = form_data.get('sleep_hours')
-            stress_level = form_data.get('stress_level')
-            
-            # Create patient data
-            patient_data = PatientData(
-                name=name,
-                age=age,
-                weight=weight,
-                height=height,
-                bmi=bmi,
-                healthy_weight_range=(0.0, 0.0),  # Will be calculated
-                water_intake=water_intake,
-                pcos_type=pcos_type,
-                waist_measurement=waist_measurement,
-                menstrual_cycle_length=int(menstrual_cycle_length) if menstrual_cycle_length else None,
-                symptoms=symptoms,
-                medical_history=medical_history,
-                medications=[m.strip() for m in medications if m.strip()],
-                allergies=[a.strip() for a in allergies if a.strip()],
-                dietary_restrictions=[d.strip() for d in dietary_restrictions if d.strip()],
-                activity_level=activity_level,
-                sleep_hours=float(sleep_hours) if sleep_hours else None,
-                stress_level=int(stress_level) if stress_level else None
-            )
-            
-            # Generate recommendations
-            recommendations = generate_recommendations(patient_data)
-            
-            return templates.TemplateResponse(
-                'analyze.html',
-                {
-                    "request": request,
-                    "patient_data": patient_data,
-                    "recommendations": recommendations
-                }
-            )
-            
-        except Exception as e:
-            logger.error(f"Error analyzing data: {str(e)}")
-            return templates.TemplateResponse(
-                'analyze.html',
-                {
-                    "request": request,
-                    "error": str(e)
-                }
-            )
-    
-    return templates.TemplateResponse('analyze.html', {"request": request})
+    try:
+        form_data = await request.form()
+        
+        # Get form data
+        name = form_data.get('name', '')
+        age = int(form_data.get('age', 0))
+        weight = float(form_data.get('weight', 0))
+        height = float(form_data.get('height', 0))
+        bmi = float(form_data.get('bmi', 0))
+        water_intake = float(form_data.get('water_intake', 0))
+        waist_measurement = float(form_data.get('waist_measurement', 0))
+        pcos_type = form_data.get('pcos_type', 'Unknown')
+        
+        # Get optional form data
+        menstrual_cycle_length = form_data.get('menstrual_cycle_length')
+        symptoms = form_data.getlist('symptoms')
+        medical_history = form_data.get('medical_history', '')
+        medications = form_data.get('medications', '').split('\n')
+        allergies = form_data.get('allergies', '').split('\n')
+        dietary_restrictions = form_data.get('dietary_restrictions', '').split('\n')
+        activity_level = form_data.get('activity_level', '')
+        sleep_hours = form_data.get('sleep_hours')
+        stress_level = form_data.get('stress_level')
+        
+        # Create patient data dictionary
+        patient_data = {
+            "name": name,
+            "age": age,
+            "weight": weight,
+            "height": height,
+            "bmi": bmi,
+            "healthy_weight_range": (0.0, 0.0),  # Will be calculated
+            "water_intake": water_intake,
+            "pcos_type": pcos_type,
+            "waist_measurement": waist_measurement,
+            "menstrual_cycle_length": int(menstrual_cycle_length) if menstrual_cycle_length else None,
+            "symptoms": symptoms,
+            "medical_history": medical_history,
+            "medications": [m.strip() for m in medications if m.strip()],
+            "allergies": [a.strip() for a in allergies if a.strip()],
+            "dietary_restrictions": [d.strip() for d in dietary_restrictions if d.strip()],
+            "activity_level": activity_level,
+            "sleep_hours": float(sleep_hours) if sleep_hours else None,
+            "stress_level": int(stress_level) if stress_level else None
+        }
+        
+        # Store patient data in session
+        request.session['patient_data'] = patient_data
+        
+        # Generate recommendations
+        recommendations = generate_recommendations(PatientData(**patient_data))
+        
+        # Create form data dictionary to preserve input values
+        form_values = {
+            "name": name,
+            "age": age,
+            "weight": weight,
+            "height": height,
+            "bmi": bmi,
+            "water_intake": water_intake,
+            "waist_measurement": waist_measurement,
+            "pcos_type": pcos_type,
+            "menstrual_cycle_length": menstrual_cycle_length,
+            "symptoms": symptoms,
+            "medical_history": medical_history,
+            "medications": "\n".join(medications),
+            "allergies": "\n".join(allergies),
+            "dietary_restrictions": "\n".join(dietary_restrictions),
+            "activity_level": activity_level,
+            "sleep_hours": sleep_hours,
+            "stress_level": stress_level
+        }
+        
+        return templates.TemplateResponse(
+            'analyze.html',
+            {
+                "request": request,
+                "patient_data": patient_data,
+                "recommendations": recommendations,
+                "form_values": form_values,
+                "show_results": True,
+                "error": None
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error analyzing data: {str(e)}")
+        return templates.TemplateResponse(
+            'analyze.html',
+            {
+                "request": request,
+                "error": str(e),
+                "form_values": form_values if 'form_values' in locals() else {},
+                "show_results": False,
+                "recommendations": None
+            }
+        )
 
 if __name__ == "__main__":
     # Create necessary folders
