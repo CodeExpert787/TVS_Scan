@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from typing import Dict, Any, List, Tuple
 import os
+from sklearn.metrics import accuracy_score, classification_report
 
 class ModelTrainer:
     def __init__(self, models_dir: str = 'models'):
@@ -38,6 +39,20 @@ class ModelTrainer:
         
         return {
             'train_accuracy': train_accuracy
+        }
+    
+    def evaluate(self, X: np.ndarray, y: np.ndarray) -> Dict[str, Any]:
+        """Evaluate the model on test data."""
+        X_scaled = self.scaler.transform(X)
+        y_pred = self.model.predict(X_scaled)
+        
+        # Calculate metrics
+        accuracy = accuracy_score(y, y_pred)
+        report = classification_report(y, y_pred, output_dict=True)
+        
+        return {
+            'accuracy': accuracy,
+            'classification_report': report
         }
     
     def predict(self, features: np.ndarray) -> Tuple[str, float]:
