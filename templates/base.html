@@ -4,33 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PCOS Analysis System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .navbar-brand {
-            font-weight: bold;
-            color: #6c5ce7 !important;
-        }
-        .nav-link {
-            color: #2d3436 !important;
-        }
-        .nav-link:hover {
-            color: #6c5ce7 !important;
-        }
-        .main-content {
-            min-height: calc(100vh - 160px);
-            padding: 2rem 0;
-        }
-        .footer {
-            background-color: #f8f9fa;
-            padding: 1rem 0;
-            margin-top: 2rem;
-        }
-    </style>
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', path='css/style.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
         <div class="container">
             <a class="navbar-brand" href="/">
                 <i class="fas fa-heartbeat me-2"></i>PCOS Analysis
@@ -41,35 +26,69 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Home</a>
+                        <a class="nav-link" href="/"><i class="fas fa-home me-2"></i>Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/analyze"><i class="fas fa-chart-line me-1"></i>Analyze</a>
+                        <a class="nav-link" href="/analyze"><i class="fas fa-chart-line me-2"></i>Analyze</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/meal-plan"><i class="fas fa-utensils me-1"></i>Meal Plan</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about"><i class="fas fa-info-circle me-1"></i>About</a>
+                        <a class="nav-link" href="/about"><i class="fas fa-info-circle me-2"></i>About</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="main-content">
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-    </div>
+    <!-- Main Content -->
+    <main class="container py-4">
+        {% block content %}{% endblock %}
+    </main>
 
-    <footer class="footer">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2024 PCOS Analysis System. All rights reserved.</p>
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-heartbeat me-2"></i>PCOS Analysis System</h5>
+                    <p class="mb-0">Helping women with PCOS through personalized nutrition and lifestyle management.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5>Contact</h5>
+                    <p class="mb-0">
+                        <i class="fas fa-envelope me-2"></i>support@pcosanalysis.com<br>
+                        <i class="fas fa-phone me-2"></i>+1 234 567 890
+                    </p>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2024 PCOS Analysis System. All rights reserved.</p>
+            </div>
         </div>
     </footer>
 
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script>
+        // Add active class to current nav item
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Add animation classes to cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.classList.add('fade-in');
+            });
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html> 
