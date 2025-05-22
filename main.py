@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -106,10 +106,19 @@ async def train_model_background():
         training_status["is_training"] = False
 
 @app.get("/", response_class=HTMLResponse)
-async def get_home():
+async def get_home(request:Request):
     """Serve the main page"""
-    with open("templates/index.html") as f:
-        return f.read()
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/analyze", response_class=HTMLResponse)
+async def get_analyze_page(request:Request):
+    """Serve the analyze page"""
+    return templates.TemplateResponse("analyze.html", {"request": request})
+
+@app.get("/meal-plan", response_class=HTMLResponse)
+async def get_meal_plan_page(request:Request):
+    """Serve the analyze page"""
+    return templates.TemplateResponse("meal_plan.html", {"request": request})
 
 @app.post("/upload-training-data")
 async def upload_training_data(file: UploadFile = File(...)):
