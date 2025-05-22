@@ -25,6 +25,22 @@
                 <form method="POST" action="/analyze" class="needs-validation" novalidate>
                     <div class="row mb-3">
                         <div class="col-md-6">
+                            <label for="name" class="form-label required-field">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="pcos_type" class="form-label required-field">PCOS Type</label>
+                            <select class="form-select" id="pcos_type" name="pcos_type" required>
+                                <option value="">Select PCOS Type</option>
+                                <option value="PCOS Rintangan Insulin">PCOS Rintangan Insulin</option>
+                                <option value="PCOS Adrenal">PCOS Adrenal</option>
+                                <option value="PCOS Rintangan Insulin + PCOS Adrenal">PCOS Rintangan Insulin + PCOS Adrenal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             <label for="age" class="form-label required-field">Age</label>
                             <input type="number" class="form-control" id="age" name="age" required min="12" max="100">
                         </div>
@@ -42,6 +58,17 @@
                         <div class="col-md-6">
                             <label for="bmi" class="form-label">BMI</label>
                             <input type="number" class="form-control" id="bmi" name="bmi" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="water_intake" class="form-label required-field">Daily Water Intake (Liters)</label>
+                            <input type="number" class="form-control" id="water_intake" name="water_intake" required step="0.1" min="0" max="10">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="waist_measurement" class="form-label required-field">Waist Measurement (cm)</label>
+                            <input type="number" class="form-control" id="waist_measurement" name="waist_measurement" required step="0.1" min="20" max="200">
                         </div>
                     </div>
 
@@ -124,6 +151,133 @@
                 </form>
             </div>
         </div>
+
+        <!-- Sample Input Section -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h2 class="h4 mb-0"><i class="fas fa-info-circle me-2"></i>Sample Input</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Required Fields:</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>Name:</strong> Afiqah Zaidi
+                            </li>
+                            <li class="list-group-item">
+                                <strong>PCOS Type:</strong> PCOS Rintangan Insulin
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Age:</strong> 28
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Weight:</strong> 65.5 kg
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Height:</strong> 165 cm
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Water Intake:</strong> 3.0 Liters
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Waist Measurement:</strong> 85 cm
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Optional Fields:</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>Menstrual Cycle:</strong> 35 days
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Symptoms:</strong> Irregular Periods, Acne
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Medical History:</strong> Diagnosed with PCOS in 2020
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Medications:</strong> Metformin 500mg
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Allergies:</strong> None
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Dietary Restrictions:</strong> No dairy
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Activity Level:</strong> Moderately Active
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Sleep Hours:</strong> 7.5 hours
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Stress Level:</strong> 6/10
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if recommendations %}
+        <!-- Recommendations Section -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-success text-white">
+                <h2 class="h4 mb-0"><i class="fas fa-clipboard-check me-2"></i>Your Personalized Recommendations</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-utensils me-2"></i>Dietary Recommendations</h5>
+                            <ul class="list-group">
+                                {% for rec in recommendations.dietary_recommendations %}
+                                <li class="list-group-item">{{ rec }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-heartbeat me-2"></i>Exercise Recommendations</h5>
+                            <ul class="list-group">
+                                {% for rec in recommendations.exercise_recommendations %}
+                                <li class="list-group-item">{{ rec }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-home me-2"></i>Lifestyle Recommendations</h5>
+                            <ul class="list-group">
+                                {% for rec in recommendations.lifestyle_recommendations %}
+                                <li class="list-group-item">{{ rec }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-pills me-2"></i>Supplement Recommendations</h5>
+                            <ul class="list-group">
+                                {% for rec in recommendations.supplement_recommendations %}
+                                <li class="list-group-item">{{ rec }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-danger mt-4" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -5,6 +5,9 @@ from models.pcos_patient import PatientData, PCOSType
 import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+import docx
+import json
+import re
 
 class DataProcessor:
     def __init__(self, data_dir: str):
@@ -33,6 +36,9 @@ class DataProcessor:
                 if patient_data:
                     all_data.append(patient_data)
         
+        if not all_data:
+            raise ValueError("No valid data files found in the data directory")
+        
         # Convert to DataFrame
         df = pd.DataFrame(all_data)
         
@@ -45,6 +51,38 @@ class DataProcessor:
         
         return train_data, test_data
     
+    def _extract_pcos_type(self, text: str) -> str:
+        """Extract PCOS type from text."""
+        if "PCOS Rintangan Insulin + PCOS Adrenal" in text:
+            return PCOSType.COMBINED.value
+        elif "PCOS Rintangan Insulin" in text:
+            return PCOSType.INSULIN_RESISTANCE.value
+        elif "PCOS Adrenal" in text:
+            return PCOSType.ADRENAL.value
+        return PCOSType.UNKNOWN.value
+
+    def _extract_healthy_weight_range(self, text: str) -> tuple[float, float]:
+        """Extract healthy weight range from text."""
+        try:
+            # Look for pattern like "45.0 kgs - 60.8 kgs"
+            match = re.search(r'(\d+\.?\d*)\s*kgs?\s*-\s*(\d+\.?\d*)\s*kgs?', text)
+            if match:
+                return (float(match.group(1)), float(match.group(2)))
+        except:
+            pass
+        return (0.0, 0.0)
+
+    def _extract_water_intake(self, text: str) -> float:
+        """Extract water intake from text."""
+        try:
+            # Look for pattern like "3 Litres"
+            match = re.search(r'(\d+\.?\d*)\s*Litres?', text)
+            if match:
+                return float(match.group(1))
+        except:
+            pass
+        return 0.0
+
     def _process_single_file(self, file_path: str) -> Dict:
         """
         Process a single PCOS patient data file
@@ -54,11 +92,13 @@ class DataProcessor:
             Dictionary containing processed patient data
         """
         try:
-            # Read the file content
-            # Note: You'll need to implement the actual file reading logic
-            # based on your file format (e.g., docx, txt, etc.)
+            # Read the docx file
+            doc = docx.Document(file_path)
             
-            # Example structure (modify according to your actual file format):
+            # Extract text from paragraphs
+            text = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+            
+            # Initialize data dictionary
             data = {
                 'name': '',
                 'age': 0,
@@ -67,9 +107,58 @@ class DataProcessor:
                 'bmi': 0.0,
                 'healthy_weight_range': (0.0, 0.0),
                 'water_intake': 0.0,
-                'pcos_type': None,  # Changed from pcos_types list to single pcos_type
-                'waist_measurement': None
+                'pcos_type': PCOSType.UNKNOWN.value,
+                'waist_measurement': 0.0
             }
+            
+            # Extract PCOS type
+            data['pcos_type'] = self._extract_pcos_type(text)
+            
+            # Process each line
+            for line in text.split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                    
+                # Extract name
+                if line.startswith('Nama'):
+                    data['name'] = line.split('Nama')[1].strip()
+                
+                # Extract age
+                elif line.startswith('Umur'):
+                    try:
+                        data['age'] = int(line.split('Umur')[1].strip())
+                    except:
+                        pass
+                
+                # Extract weight
+                elif line.startswith('Berat'):
+                    try:
+                        data['weight'] = float(line.split('Berat')[1].strip().split()[0])
+                    except:
+                        pass
+                
+                # Extract height
+                elif line.startswith('Height'):
+                    try:
+                        data['height'] = float(line.split('Height')[1].strip().split()[0])
+                    except:
+                        pass
+                
+                # Extract BMI
+                elif line.startswith('BMI'):
+                    try:
+                        data['bmi'] = float(line.split('BMI')[1].strip().split()[0])
+                    except:
+                        pass
+                
+                # Extract healthy weight range
+                elif 'Berat yang sihat' in line:
+                    data['healthy_weight_range'] = self._extract_healthy_weight_range(line)
+                
+                # Extract water intake
+                elif 'Jumlah Air yang perlu diminum' in line:
+                    data['water_intake'] = self._extract_water_intake(line)
             
             return data
             
@@ -86,7 +175,7 @@ class DataProcessor:
             Tuple of (features, labels)
         """
         # Extract features
-        features = df[['age', 'weight', 'height', 'bmi', 'water_intake']].values
+        features = df[['age', 'weight', 'height', 'bmi', 'water_intake', 'waist_measurement']].values
         
         # Scale features
         scaled_features = self.scaler.fit_transform(features)

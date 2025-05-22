@@ -23,6 +23,17 @@
         display: flex;
         gap: 10px;
     }
+    #trainingResults {
+        display: none;
+    }
+    .metrics-card {
+        margin-top: 20px;
+    }
+    .metrics-value {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #6c5ce7;
+    }
 </style>
 {% endblock %}
 
@@ -72,6 +83,37 @@
         </div>
     </div>
 </div>
+
+<!-- Training Results Section -->
+<div id="trainingResults" class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Training Results</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card metrics-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Training Accuracy</h6>
+                        <p class="metrics-value" id="trainAccuracy">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card metrics-card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Test Accuracy</h6>
+                        <p class="metrics-value" id="testAccuracy">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <h6>Classification Report</h6>
+            <pre id="classificationReport" class="bg-light p-3 rounded"></pre>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -87,6 +129,7 @@
                 const startTrainingBtn = document.getElementById('startTrainingBtn');
                 const lastTrained = document.getElementById('lastTrained');
                 const trainingStatus = document.getElementById('trainingStatus');
+                const trainingResults = document.getElementById('trainingResults');
 
                 // Show training status section when training starts
                 if (data.is_training && !trainingStatus.classList.contains('visible')) {
@@ -108,6 +151,29 @@
                     startTrainingBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Training in Progress...';
                 } else {
                     startTrainingBtn.innerHTML = '<i class="fas fa-play me-2"></i>Start Training';
+                }
+
+                // Show results when training is completed
+                if (data.status === 'completed' && data.metrics) {
+                    trainingResults.style.display = 'block';
+                    document.getElementById('trainAccuracy').textContent = 
+                        `${(data.metrics.train_accuracy * 100).toFixed(2)}%`;
+                    document.getElementById('testAccuracy').textContent = 
+                        `${(data.metrics.accuracy * 100).toFixed(2)}%`;
+                    
+                    // Format and display classification report
+                    const report = data.metrics.classification_report;
+                    let reportText = '';
+                    for (const [label, metrics] of Object.entries(report)) {
+                        if (label !== 'accuracy') {
+                            reportText += `Class ${label}:\n`;
+                            reportText += `  Precision: ${(metrics.precision * 100).toFixed(2)}%\n`;
+                            reportText += `  Recall: ${(metrics.recall * 100).toFixed(2)}%\n`;
+                            reportText += `  F1-score: ${(metrics.f1_score * 100).toFixed(2)}%\n`;
+                            reportText += `  Support: ${metrics.support}\n\n`;
+                        }
+                    }
+                    document.getElementById('classificationReport').textContent = reportText;
                 }
 
                 if (data.is_training) {
