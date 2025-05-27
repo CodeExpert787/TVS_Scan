@@ -1,5 +1,5 @@
 from typing import List, Dict
-from models.pcos_patient import PatientData, PCOSType
+from models.pcos_patient import PatientData, Outcome
 
 class MealPlanGenerator:
     def __init__(self):
@@ -295,8 +295,8 @@ class MealPlanGenerator:
         Generate breakfast options based on PCOS type
         For insulin-resistant PCOS, prioritize protein-rich breakfast
         """
-        pcos_type = patient_data.get("pcos_type", "")
-        if "Rintangan Insulin" in pcos_type:
+        outcome = patient_data.get("outcome", "")
+        if "Rintangan Insulin" in outcome:
             return {
                 "type": "protein_rich",
                 "options": self.breakfast_options["protein_rich"],
@@ -339,9 +339,9 @@ class MealPlanGenerator:
         Generate supplement recommendations based on PCOS type
         """
         supplements = []
-        pcos_type = patient_data.get("pcos_type", "")
-        if "Rintangan Insulin" in pcos_type:
+        outcome = patient_data.get("outcome", "")
+        if "Rintangan Insulin" in outcome:
             supplements.append("Feminira (for 3 months) - Balance hormones and improve egg quality")
-        if "Adrenal" in pcos_type:
+        if "Adrenal" in outcome:
             supplements.append("Consider stress-reducing herbal supplements")
         return {"recommendations": supplements} 

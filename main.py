@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, R
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from models.pcos_patient import PatientData, PCOSType
+from models.pcos_patient import PatientData, Outcome
 from meal_plan_generator import MealPlanGenerator
 from data_processor import DataProcessor
 from model_trainer import ModelTrainer
@@ -163,16 +163,16 @@ async def get_meal_plan_page(request: Request):
         
         # Generate dietary guidelines based on PCOS type
         dietary_guidelines = []
-        pcos_type = patient_data.get("pcos_type", "")
+        outcome = patient_data.get("outcome", "")
         
-        if "Rintangan Insulin" in pcos_type:
+        if "Rintangan Insulin" in outcome:
             dietary_guidelines.extend([
                 "Focus on low glycemic index foods",
                 "Include protein with every meal",
                 "Limit refined carbohydrates",
                 "Choose complex carbs over simple sugars"
             ])
-        elif "Adrenal" in pcos_type:
+        elif "Adrenal" in outcome:
             dietary_guidelines.extend([
                 "Anti-inflammatory diet",
                 "Omega-3 rich foods",
@@ -267,11 +267,11 @@ async def generate_meal_plan(patient_data: PatientData):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/pcos-types")
-async def get_pcos_types():
+async def get_outcomes():
     """
     Get available PCOS types
     """
-    return {"pcos_types": [type.value for type in PCOSType]}
+    return {"outcomes": [type.value for type in PCOSType]}
 
 def generate_recommendations(patient_data: PatientData) -> dict:
     """
@@ -285,7 +285,7 @@ def generate_recommendations(patient_data: PatientData) -> dict:
     }
     
     # PCOS Type specific recommendations
-    if patient_data.pcos_type == "Rintangan Insulin":
+    if patient_data.outcome == "Rintangan Insulin":
         recommendations["dietary_recommendations"].extend([
             "Focus on low glycemic index foods",
             "Include protein with every meal",
@@ -307,30 +307,6 @@ def generate_recommendations(patient_data: PatientData) -> dict:
             "Vitamin D",
             "Magnesium"
         ])
-    
-    elif patient_data.pcos_type == "Adrenal":
-        recommendations["dietary_recommendations"].extend([
-            "Anti-inflammatory diet",
-            "Omega-3 rich foods",
-            "Limit caffeine and alcohol",
-            "Include magnesium-rich foods"
-        ])
-        recommendations["lifestyle_recommendations"].extend([
-            "Stress reduction techniques",
-            "Regular sleep schedule",
-            "Mindfulness practices"
-        ])
-        recommendations["exercise_recommendations"].extend([
-            "Gentle yoga",
-            "Walking",
-            "Swimming"
-        ])
-        recommendations["supplement_recommendations"].extend([
-            "Vitamin B complex",
-            "Magnesium",
-            "Adaptogenic herbs (consult doctor)"
-        ])
-    
     else:  # Unknown or combined
         recommendations["dietary_recommendations"].extend([
             "Balanced low-glycemic diet",
@@ -394,7 +370,8 @@ async def analyze(request: Request):
         bmi = float(form_data.get('bmi', 0))
         water_intake = float(form_data.get('water_intake', 0))
         waist_measurement = float(form_data.get('waist_measurement', 0))
-        pcos_type = form_data.get('pcos_type', 'Unknown')
+        outcome = form_data.get('outcome', 'Unknown')
+        outcome_point = form_data.get('outcome_point', 0)
         
         # Get optional form data
         menstrual_cycle_length = form_data.get('menstrual_cycle_length')
@@ -416,7 +393,8 @@ async def analyze(request: Request):
             "bmi": bmi,
             "healthy_weight_range": (0.0, 0.0),  # Will be calculated
             "water_intake": water_intake,
-            "pcos_type": pcos_type,
+            "outcome": outcome,
+            "outcome_point": outcome_point,
             "waist_measurement": waist_measurement,
             "menstrual_cycle_length": int(menstrual_cycle_length) if menstrual_cycle_length else None,
             "symptoms": symptoms,
@@ -444,7 +422,8 @@ async def analyze(request: Request):
             "bmi": bmi,
             "water_intake": water_intake,
             "waist_measurement": waist_measurement,
-            "pcos_type": pcos_type,
+            "outcome": outcome,
+            "outcome_point": outcome_point,
             "menstrual_cycle_length": menstrual_cycle_length,
             "symptoms": symptoms,
             "medical_history": medical_history,

@@ -56,6 +56,7 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="/analyze" class="needs-validation" novalidate>
+
                     <!-- Personal Information -->
                     <div class="form-section">
                         <h3 class="form-section-title"><i class="fas fa-user me-2"></i>Personal Information</h3>
@@ -64,14 +65,22 @@
                                 <label for="name" class="form-label">Name</label>
                                 <input type="text" class="form-control" id="name" name="name" required value="{{ form_values.name }}">
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="pcos_type" class="form-label">PCOS Type</label>
-                                <select class="form-select" id="pcos_type" name="pcos_type" required>
+                                <label for="outcome" class="form-label">Outcome</label>
+                                <select class="form-select" id="outcome" name="outcome" required>
                                     <option value="">Select PCOS Type</option>
-                                    <option value="Rintangan Insulin" {% if form_values.pcos_type == 'Rintangan Insulin' %}selected{% endif %}>Rintangan Insulin</option>
-                                    <option value="Adrenal" {% if form_values.pcos_type == 'Adrenal' %}selected{% endif %}>Adrenal</option>
-                                    <option value="Unknown" {% if form_values.pcos_type == 'Unknown' %}selected{% endif %}>Unknown</option>
+                                    <option value="Rintangan Insulin" {% if form_values.outcome == 'Rintangan Insulin' %}selected{% endif %}>Rintangan Insulin</option>
+                                    <option value="PCOS Adrenal" {% if form_values.outcome == 'PCOS Adrenal' %}selected{% endif %}>PCOS Adrenal</option>
+                                    <option value="PCOS Keradangan" {% if form_values.outcome == 'PCOS Keradangan' %}selected{% endif %}>PCOS Keradangan</option>
+                                    <option value="Pos Pil Perancang" {% if form_values.outcome == 'Pos Pil Perancang' %}selected{% endif %}>Pos Pil Perancang</option>
+                                    <option value="Unknown" {% if form_values.outcome == 'Unknown' %}selected{% endif %}>Unknown</option>
                                 </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="outcome_point" class="form-label">Outcome Point</label>
+                                <input type="number" class="form-control" id="outcome_point" name="outcome_point" required value="{{ form_values.outcome_point }}">
                             </div>
                         </div>
                     </div>

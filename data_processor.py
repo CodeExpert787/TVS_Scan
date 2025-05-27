@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Tuple
-from models.pcos_patient import PatientData, PCOSType
+from models.pcos_patient import PatientData, Outcome
 import os
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -51,7 +51,7 @@ class DataProcessor:
         
         return train_data, test_data
     
-    def _extract_pcos_type(self, text: str) -> str:
+    def _extract_outcome(self, text: str) -> str:
         """Extract PCOS type from text."""
         if "PCOS Rintangan Insulin + PCOS Adrenal" in text:
             return PCOSType.COMBINED.value
@@ -107,12 +107,12 @@ class DataProcessor:
                 'bmi': 0.0,
                 'healthy_weight_range': (0.0, 0.0),
                 'water_intake': 0.0,
-                'pcos_type': PCOSType.UNKNOWN.value,
+                'outcome': PCOSType.UNKNOWN.value,
                 'waist_measurement': 0.0
             }
             
             # Extract PCOS type
-            data['pcos_type'] = self._extract_pcos_type(text)
+            data['outcome'] = self._extract_outcome(text)
             
             # Process each line
             for line in text.split('\n'):
@@ -181,7 +181,7 @@ class DataProcessor:
         scaled_features = self.scaler.fit_transform(features)
         
         # Extract and encode labels (PCOS type)
-        labels = self.label_encoder.fit_transform(df['pcos_type'].values)
+        labels = self.label_encoder.fit_transform(df['outcome'].values)
         
         return scaled_features, labels
     

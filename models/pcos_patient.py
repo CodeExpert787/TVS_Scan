@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional, List
 from pydantic import BaseModel
 
-class PCOSType(str, Enum):
+class Outcome(str, Enum):
     """Enum for different types of PCOS."""
     INSULIN_RESISTANCE = "Rintangan Insulin"
     ADRENAL = "Adrenal"
@@ -17,7 +17,8 @@ class PatientData(BaseModel):
     bmi: float
     healthy_weight_range: tuple[float, float]
     water_intake: float
-    pcos_type: str  # Changed from PCOSType to str
+    outcome:str  # Changed from PCOSType to str
+    outcome_point:int
     waist_measurement: Optional[float]
     menstrual_cycle_length: Optional[int] = None
     symptoms: List[str] = []
