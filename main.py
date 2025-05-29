@@ -1071,12 +1071,6 @@ async def get_random_data():
             "error": str(e)
         })
 
-# Visualization routes
-@app.get("/visualize", response_class=HTMLResponse)
-async def get_visualize_page(request: Request):
-    """Serve the visualization page"""
-    return templates.TemplateResponse("visualize.html", {"request": request})
-
 # Home and About routes
 @app.get("/", response_class=HTMLResponse)
 async def get_home(request: Request):
