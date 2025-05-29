@@ -1,340 +1,377 @@
 {% extends "base.html" %}
 
-{% block title %}Analyze - PCOS Analysis System{% endblock %}
+{% block title %}Analyze PCOS - PCOS Analysis Platform{% endblock %}
 
 {% block extra_css %}
 <style>
-    .form-section {
-        margin-bottom: 2rem;
-    }
-    .form-section-title {
-        color: var(--primary-color);
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid var(--light-bg);
-    }
-    .recommendation-card {
+    .analyze-section {
         transition: var(--transition);
     }
-    .recommendation-card:hover {
+    .analyze-section:hover {
         transform: translateY(-5px);
     }
-    .recommendation-icon {
-        font-size: 2rem;
+    .form-label {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+    }
+    .required-field::after {
+        content: " *";
+        color: var(--danger-color);
+    }
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    .submit-section {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 1rem 0;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+    .progress-bar {
+        height: 5px;
+        transition: width 0.3s ease;
+    }
+    .question-card {
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        transition: var(--transition);
+    }
+    .question-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .question-number {
+        font-weight: bold;
         color: var(--primary-color);
-        margin-bottom: 1rem;
+        margin-right: 0.5rem;
     }
-    .form-check-input:checked {
-        background-color: var(--primary-color);
+    .question-text {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    .input-group {
+        margin-bottom: 0.5rem;
+    }
+    .input-group-text {
+        background-color: var(--light-bg);
+        border-color: var(--border-color);
+    }
+    .form-control {
+        border-color: var(--border-color);
+    }
+    .form-control:focus {
         border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
     }
-    .form-check-input:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+    .result-section {
+        margin-top: 2rem;
     }
-    .text-primary {
-        color: var(--primary-color) !important;
+    .result-card {
+        transition: var(--transition);
     }
-    .form-range::-webkit-slider-thumb {
-        background: var(--primary-color);
+    .result-card:hover {
+        transform: translateY(-5px);
     }
-    .form-range::-moz-range-thumb {
-        background: var(--primary-color);
-    }
-    .form-range::-ms-thumb {
-        background: var(--primary-color);
+    .confidence-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="card shadow slide-in">
-            <div class="card-header">
-                <h2 class="h4 mb-0 text-white"><i class="fas fa-chart-line me-2"></i>PCOS Analysis Form</h2>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="/analyze" class="needs-validation" novalidate>
-
-                    <!-- Personal Information -->
-                    <div class="form-section">
-                        <h3 class="form-section-title"><i class="fas fa-user me-2"></i>Personal Information</h3>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="name" name="name" required value="{{ form_values.name }}">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="outcome" class="form-label">Outcome</label>
-                                <select class="form-select" id="outcome" name="outcome" required>
-                                    <option value="">Select PCOS Type</option>
-                                    <option value="Rintangan Insulin" {% if form_values.outcome == 'Rintangan Insulin' %}selected{% endif %}>Rintangan Insulin</option>
-                                    <option value="PCOS Adrenal" {% if form_values.outcome == 'PCOS Adrenal' %}selected{% endif %}>PCOS Adrenal</option>
-                                    <option value="PCOS Keradangan" {% if form_values.outcome == 'PCOS Keradangan' %}selected{% endif %}>PCOS Keradangan</option>
-                                    <option value="Pos Pil Perancang" {% if form_values.outcome == 'Pos Pil Perancang' %}selected{% endif %}>Pos Pil Perancang</option>
-                                    <option value="Unknown" {% if form_values.outcome == 'Unknown' %}selected{% endif %}>Unknown</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="outcome_point" class="form-label">Outcome Point</label>
-                                <input type="number" class="form-control" id="outcome_point" name="outcome_point" required value="{{ form_values.outcome_point }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Physical Measurements -->
-                    <div class="form-section">
-                        <h3 class="form-section-title"><i class="fas fa-ruler me-2"></i>Physical Measurements</h3>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="age" class="form-label">Age</label>
-                                <input type="number" class="form-control" id="age" name="age" required value="{{ form_values.age }}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="weight" class="form-label">Weight (kg)</label>
-                                <input type="number" step="0.1" class="form-control" id="weight" name="weight" required value="{{ form_values.weight }}">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="height" class="form-label">Height (cm)</label>
-                                <input type="number" step="0.1" class="form-control" id="height" name="height" required value="{{ form_values.height }}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="bmi" class="form-label">BMI</label>
-                                <input type="number" step="0.1" class="form-control" id="bmi" name="bmi" required value="{{ form_values.bmi }}" readonly>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="water_intake" class="form-label">Water Intake (liters/day)</label>
-                                <input type="number" step="0.1" class="form-control" id="water_intake" name="water_intake" required value="{{ form_values.water_intake }}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="waist_measurement" class="form-label">Waist Measurement (cm)</label>
-                                <input type="number" step="0.1" class="form-control" id="waist_measurement" name="waist_measurement" required value="{{ form_values.waist_measurement }}">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Health Information -->
-                    <div class="form-section">
-                        <h3 class="form-section-title"><i class="fas fa-heartbeat me-2"></i>Health Information</h3>
-                        <div class="mb-3">
-                            <label for="menstrual_cycle_length" class="form-label">Menstrual Cycle Length (days)</label>
-                            <input type="number" class="form-control" id="menstrual_cycle_length" name="menstrual_cycle_length" value="{{ form_values.menstrual_cycle_length }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Symptoms</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="symptoms" value="Irregular Periods" {% if 'Irregular Periods' in form_values.symptoms %}checked{% endif %}>
-                                        <label class="form-check-label">Irregular Periods</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="symptoms" value="Weight Gain" {% if 'Weight Gain' in form_values.symptoms %}checked{% endif %}>
-                                        <label class="form-check-label">Weight Gain</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="symptoms" value="Acne" {% if 'Acne' in form_values.symptoms %}checked{% endif %}>
-                                        <label class="form-check-label">Acne</label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="symptoms" value="Hair Loss" {% if 'Hair Loss' in form_values.symptoms %}checked{% endif %}>
-                                        <label class="form-check-label">Hair Loss</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="medical_history" class="form-label">Medical History</label>
-                            <textarea class="form-control" id="medical_history" name="medical_history" rows="3">{{ form_values.medical_history }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="medications" class="form-label">Current Medications</label>
-                            <textarea class="form-control" id="medications" name="medications" rows="3" placeholder="Enter one medication per line">{{ form_values.medications }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="allergies" class="form-label">Allergies</label>
-                            <textarea class="form-control" id="allergies" name="allergies" rows="3" placeholder="Enter one allergy per line">{{ form_values.allergies }}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="dietary_restrictions" class="form-label">Dietary Restrictions</label>
-                            <textarea class="form-control" id="dietary_restrictions" name="dietary_restrictions" rows="3" placeholder="Enter one restriction per line">{{ form_values.dietary_restrictions }}</textarea>
-                        </div>
-                    </div>
-
-                    <!-- Lifestyle Information -->
-                    <div class="form-section">
-                        <h3 class="form-section-title"><i class="fas fa-running me-2"></i>Lifestyle Information</h3>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="activity_level" class="form-label">Activity Level</label>
-                                <select class="form-select" id="activity_level" name="activity_level">
-                                    <option value="">Select Activity Level</option>
-                                    <option value="Sedentary" {% if form_values.activity_level == 'Sedentary' %}selected{% endif %}>Sedentary</option>
-                                    <option value="Lightly Active" {% if form_values.activity_level == 'Lightly Active' %}selected{% endif %}>Lightly Active</option>
-                                    <option value="Moderately Active" {% if form_values.activity_level == 'Moderately Active' %}selected{% endif %}>Moderately Active</option>
-                                    <option value="Very Active" {% if form_values.activity_level == 'Very Active' %}selected{% endif %}>Very Active</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="sleep_hours" class="form-label">Average Sleep Hours</label>
-                                <input type="number" step="0.5" class="form-control" id="sleep_hours" name="sleep_hours" value="{{ form_values.sleep_hours }}">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="stress_level" class="form-label">Stress Level (1-10)</label>
-                            <input type="range" class="form-range" id="stress_level" name="stress_level" min="1" max="10" value="{{ form_values.stress_level or 5 }}">
-                            <div class="text-center" id="stress_level_value">{{ form_values.stress_level or 5 }}</div>
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-chart-line me-2"></i>Analyze
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {% if show_results and recommendations %}
-        <div class="card shadow mt-4 slide-in">
-            <div class="card-header">
-                <h2 class="h4 mb-0 text-white"><i class="fas fa-chart-line me-2"></i>Analysis Results</h2>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="recommendation-card mb-4">
-                            <div class="recommendation-icon">
-                                <i class="fas fa-utensils"></i>
-                            </div>
-                            <h5 class="text-primary">Dietary Recommendations</h5>
-                            <ul class="list-group">
-                                {% for rec in recommendations.dietary_recommendations %}
-                                <li class="list-group-item">{{ rec }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        
-                        <div class="recommendation-card mb-4">
-                            <div class="recommendation-icon">
-                                <i class="fas fa-heartbeat"></i>
-                            </div>
-                            <h5 class="text-primary">Exercise Recommendations</h5>
-                            <ul class="list-group">
-                                {% for rec in recommendations.exercise_recommendations %}
-                                <li class="list-group-item">{{ rec }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="recommendation-card mb-4">
-                            <div class="recommendation-icon">
-                                <i class="fas fa-home"></i>
-                            </div>
-                            <h5 class="text-primary">Lifestyle Recommendations</h5>
-                            <ul class="list-group">
-                                {% for rec in recommendations.lifestyle_recommendations %}
-                                <li class="list-group-item">{{ rec }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        
-                        <div class="recommendation-card mb-4">
-                            <div class="recommendation-icon">
-                                <i class="fas fa-pills"></i>
-                            </div>
-                            <h5 class="text-primary">Supplement Recommendations</h5>
-                            <ul class="list-group">
-                                {% for rec in recommendations.supplement_recommendations %}
-                                <li class="list-group-item">{{ rec }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                    <a href="/meal-plan" class="btn btn-primary">
-                        <i class="fas fa-utensils me-2"></i>Generate Detailed Meal Plan
-                    </a>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h2 class="h4 mb-0"><i class="fas fa-microscope me-2"></i>PCOS Analysis</h2>
                 </div>
             </div>
         </div>
-        {% endif %}
-
-        {% if error %}
-        <div class="alert alert-danger mt-4 slide-in" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
-        </div>
-        {% endif %}
     </div>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+    </div>
+    {% endif %}
+
+    {% if prediction %}
+    <div class="row result-section">
+        <div class="col-12">
+            <div class="card shadow result-card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0"><i class="fas fa-chart-pie me-2"></i>Analysis Results</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4 class="h6 mb-3">Prediction</h4>
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 {% if prediction == 'PCOS' %}text-danger{% else %}text-success{% endif %}">
+                                    {{ prediction }}
+                                </h5>
+                                <span class="badge bg-light text-dark confidence-badge ms-3">
+                                    Confidence: {{ "%.2f"|format(confidence) }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4 class="h6 mb-3">Recommendations</h4>
+                            <ul class="list-group list-group-flush">
+                                {% if prediction == 'PCOS' %}
+                                <li class="list-group-item">Consult with a healthcare provider for proper diagnosis and treatment</li>
+                                <li class="list-group-item">Consider lifestyle modifications including diet and exercise</li>
+                                <li class="list-group-item">Monitor symptoms and maintain regular check-ups</li>
+                                {% else %}
+                                <li class="list-group-item">Maintain a healthy lifestyle with balanced diet and regular exercise</li>
+                                <li class="list-group-item">Continue regular health check-ups</li>
+                                <li class="list-group-item">Monitor for any changes in symptoms</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form id="analyzeForm" method="POST" class="analyze-section">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0"><i class="fas fa-question-circle me-2"></i>Please answer all questions</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Progress Bar -->
+                        <div class="progress mb-4">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+
+                        <!-- Questions Container -->
+                        <div id="questionsContainer">
+                            {% for question in questions %}
+                            <div class="question-card" data-question="{{ loop.index }}">
+                                <div class="question-text">
+                                    <span class="question-number">Q{{ loop.index }}.</span>
+                                    {{ question }}
+                                </div>
+                                <div class="input-group">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           name="{{ question }}" 
+                                           id="{{ question }}_input" 
+                                           required 
+                                           placeholder="Enter value">
+                                    <div class="error-message" style="display: none;"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Submit Section -->
+                        <div class="submit-section sticky-bottom bg-white py-3">
+                            <div class="container d-flex justify-content-between align-items-center">
+                                <div class="progress-container">
+                                    <div class="progress" role="progressbar" aria-label="Analysis progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 250px;">
+                                        <div class="progress-bar" style="width: 0%"></div>
+                                    </div>
+                                    <span id="progress-text" class="ms-2">0/{{ questions|length }} Answered</span>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-secondary me-2" id="randomBtn">Generate Random Input</button>
+                                    <button type="button" class="btn btn-danger me-2" id="resetBtn">Reset Form</button>
+                                    <button type="submit" class="btn btn-primary" id="analyzeBtn">Analyze</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Calculate BMI automatically
-    document.getElementById('weight').addEventListener('input', calculateBMI);
-    document.getElementById('height').addEventListener('input', calculateBMI);
-
-    function calculateBMI() {
-        const weight = parseFloat(document.getElementById('weight').value);
-        const height = parseFloat(document.getElementById('height').value) / 100; // convert to meters
-        if (weight && height) {
-            const bmi = (weight / (height * height)).toFixed(1);
-            document.getElementById('bmi').value = bmi;
-        }
-    }
-
-    // Update stress level value display
-    document.getElementById('stress_level').addEventListener('input', function() {
-        document.getElementById('stress_level_value').textContent = this.value;
-    });
-
-    // Form validation
-    (function() {
-        'use strict';
-        const forms = document.querySelectorAll('.needs-validation');
-        Array.from(forms).forEach(form => {
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    })();
-
-    // Add animation to form sections
     document.addEventListener('DOMContentLoaded', function() {
-        const sections = document.querySelectorAll('.form-section');
-        sections.forEach((section, index) => {
-            section.style.opacity = '0';
-            section.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                section.style.transition = 'all 0.5s ease';
-                section.style.opacity = '1';
-                section.style.transform = 'translateY(0)';
-            }, index * 100);
+        const totalQuestions = {{ questions|length }};
+        let answeredQuestions = 0;
+        const progressBar = document.querySelector('.progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const errorMessages = document.getElementById('error-messages');
+        const analyzeForm = document.getElementById('analyzeForm');
+        const randomBtn = document.getElementById('randomBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Function to update progress
+        function updateProgress() {
+            const progress = (answeredQuestions / totalQuestions) * 100;
+            progressBar.style.width = progress + '%';
+            progressText.textContent = `${answeredQuestions}/${totalQuestions} Answered`;
+            // Update analyze button state
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            if (analyzeBtn) {
+                analyzeBtn.disabled = answeredQuestions !== totalQuestions;
+            }
+        }
+
+        // Handle random input button
+        randomBtn.addEventListener('click', async function() {
+            try {
+                // Show loading state
+                randomBtn.disabled = true;
+                randomBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+                
+                // Fetch random data
+                const response = await fetch('/analyze/random-data');
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Fill all input fields with random data
+                    document.querySelectorAll('input[type="text"]').forEach(function(input) {
+                        const questionName = input.getAttribute('name');
+                        const value = result.data[questionName];
+                        
+                        if (value !== undefined) {
+                            input.value = value;
+                            
+                            // Update answered status
+                            const questionCard = input.closest('.question-card');
+                            if (!questionCard.dataset.answered) {
+                                answeredQuestions++;
+                                questionCard.dataset.answered = 'true';
+                            }
+                        }
+                    });
+                    
+                    // Update progress
+                    updateProgress();
+                    
+                    // Show success message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show';
+                    alert.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>Random data loaded successfully
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.querySelector('.card-body').insertBefore(alert, document.querySelector('.progress'));
+                    
+                    // Auto-dismiss alert after 3 seconds
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 3000);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                // Show error message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-circle me-2"></i>${error.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.card-body').insertBefore(alert, document.querySelector('.progress'));
+            } finally {
+                // Reset button state
+                randomBtn.disabled = false;
+                randomBtn.innerHTML = '<i class="fas fa-random me-2"></i>Generate Random Input';
+            }
+        });
+
+        // Reset button functionality
+        resetBtn.addEventListener('click', function() {
+            analyzeForm.reset(); // Reset the form fields
+            updateProgress(); // Update the progress bar and text
+            if (errorMessages) {
+                errorMessages.innerHTML = ''; // Clear any error messages
+            }
+             // Clear input field validity states (Bootstrap validation classes)
+            analyzeForm.querySelectorAll('.form-control').forEach(input => {
+                input.classList.remove('is-valid', 'is-invalid');
+            });
+        });
+
+        // Initial progress update
+        updateProgress();
+
+        // Event listener for form submission (existing)
+        analyzeForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Validate all questions are answered
+            let allAnswered = true;
+            document.querySelectorAll('.question-card').forEach(function(card) {
+                const input = card.querySelector('input[type="text"]');
+                const value = input.value.trim();
+                
+                if (value === '') {
+                    allAnswered = false;
+                    const errorMessage = card.querySelector('.error-message');
+                    errorMessage.textContent = 'Please enter a value';
+                    errorMessage.style.display = 'block';
+                }
+            });
+            
+            if (allAnswered) {
+                // Show loading state
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = true;
+                    analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+                }
+                
+                // Submit the form
+                analyzeForm.submit();
+            } else {
+                // Scroll to first unanswered question
+                const firstError = document.querySelector('.error-message[style="display: block"]');
+                if (firstError) {
+                    firstError.closest('.question-card').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            }
+        });
+
+        // Handle input changes
+        document.querySelectorAll('input[type="text"]').forEach(function(input) {
+            input.addEventListener('input', function() {
+                const questionCard = this.closest('.question-card');
+                const questionName = this.getAttribute('name');
+                
+                // Check if this is the first answer for this question
+                if (!questionCard.dataset.answered && this.value.trim() !== '') {
+                    answeredQuestions++;
+                    questionCard.dataset.answered = 'true';
+                } else if (questionCard.dataset.answered && this.value.trim() === '') {
+                    answeredQuestions--;
+                    questionCard.dataset.answered = '';
+                }
+                
+                // Remove error message if it exists
+                const errorMessage = questionCard.querySelector('.error-message');
+                if (errorMessage) {
+                    errorMessage.style.display = 'none';
+                }
+                
+                updateProgress();
+            });
         });
     });
 </script>

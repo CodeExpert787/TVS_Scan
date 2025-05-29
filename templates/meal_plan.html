@@ -5,31 +5,32 @@
 {% block extra_css %}
 <style>
     .meal-card {
-        transition: transform 0.2s;
+        transition: var(--transition);
     }
     .meal-card:hover {
         transform: translateY(-5px);
     }
     .meal-time {
         font-size: 1.2rem;
-        color: #6c5ce7;
+        color: var(--primary-color);
     }
     .nutrition-info {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-color);
     }
     .portion-info {
         font-size: 0.85rem;
-        color: #888;
+        color: var(--text-color);
+        opacity: 0.7;
         font-style: italic;
     }
     .meal-notes {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--text-color);
         font-style: italic;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--light-bg);
     }
 </style>
 {% endblock %}
@@ -38,7 +39,7 @@
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="card shadow mb-4">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h2 class="h4 mb-0"><i class="fas fa-utensils me-2"></i>Personalized Meal Plan</h2>
             </div>
             <div class="card-body">

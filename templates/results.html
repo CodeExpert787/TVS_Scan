@@ -1,118 +1,262 @@
 {% extends "base.html" %}
 
-{% block title %}Analysis Results - PCOS Analysis System{% endblock %}
+{% block title %}Analysis Results - PCOS Analysis Platform{% endblock %}
 
 {% block extra_css %}
 <style>
     .result-card {
-        transition: transform 0.2s;
+        transition: var(--transition);
     }
     .result-card:hover {
         transform: translateY(-5px);
     }
-    .probability-bar {
-        height: 25px;
-        border-radius: 12px;
+    .meal-plan-section {
+        margin-top: 2rem;
+    }
+    .meal-type {
+        margin-bottom: 1.5rem;
+    }
+    .meal-options {
+        list-style: none;
+        padding-left: 0;
+    }
+    .meal-options li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .meal-options li:last-child {
+        border-bottom: none;
+    }
+    .recommendations {
+        background-color: var(--light-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+    .recommendations ul {
+        margin-bottom: 0;
+    }
+    .confidence-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+    .personal-details table {
+        width: 100%;
+        margin-bottom: 1.5rem;
+        border-collapse: collapse;
+    }
+    .personal-details th, .personal-details td {
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        text-align: left;
+    }
+    .personal-details th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        width: 40%; /* Adjust as needed */
+    }
+    .personal-details td {
+         width: 60%; /* Adjust as needed */
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-10">
-        <div class="card shadow mb-4">
-            <div class="card-header bg-primary text-white">
-                <h2 class="h4 mb-0"><i class="fas fa-chart-pie me-2"></i>Analysis Results</h2>
-            </div>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Analysis Results</h1>
+
+    <!-- Personal Details Section -->
+    <div class="card mb-4 personal-details">
+        <div class="card-body">
+            <h2 class="card-title">Personal Details</h2>
+            <table>
+                <tbody>
+                    {% set personal_keys = ['Nama', 'Umur_Age', 'Tinggi _Height (cm)', 'Berat_ Weight (kg)', 'BMI', 'Berat yang sihat', 'Jumlah Air yang perlu diminum sepanjang hari'] %}
+                    {% for key in personal_keys %}
+                        {% if input_data[key] is defined %}
+                        <tr>
+                            <th>{{ key }}</th>
+                            <td>{{ input_data[key] }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Outcome Section (Placeholder for now) -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="card-title">Results</h2>
+            <p><strong>Outcome:</strong> <span id="outcome-placeholder"></span></p>
+            <p><strong>Outcome Points:</strong> <span id="outcome-points-placeholder"></span></p>
+            <p><strong>Outcome Distribution:</strong> <span id="outcome-distribution-placeholder"></span></p>
+            <p><strong>Score:</strong> <span id="score-placeholder"></span></p>
+             <p class="lead">Based on your answers, you have been identified as having: <strong>{{ pcos_type }}</strong></p>
+            <p>Confidence: {{ "%.1f"|format(probability * 100) }}%</p>
+        </div>
+    </div>
+
+    {% if meal_plan and not meal_plan.error %}
+    <div class="meal-plan">
+        <h2 class="text-center mb-4">{{ meal_plan.title }}</h2>
+
+        <!-- Treatments -->
+        <div class="card mb-4">
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h3 class="h5">PCOS Type Prediction</h3>
-                        <div class="card result-card">
-                            <div class="card-body">
-                                <h4 class="card-title">{{ outcome }}</h4>
-                                <div class="progress mb-3">
-                                    <div class="progress-bar bg-primary" role="progressbar" 
-                                         style="width: {{ probability }}%" 
-                                         aria-valuenow="{{ probability }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                        {{ probability }}%
-                                    </div>
-                                </div>
-                                <p class="card-text">{{ type_description }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <h3 class="h5">Key Metrics</h3>
-                        <div class="card result-card">
-                            <div class="card-body">
-                                <ul class="list-group list-group-flush">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        BMI
-                                        <span class="badge bg-primary rounded-pill">{{ bmi }}</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Age
-                                        <span class="badge bg-primary rounded-pill">{{ age }}</span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Symptoms Count
-                                        <span class="badge bg-primary rounded-pill">{{ symptoms_count }}</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+                <h3 class="card-title">Rawatan Bulan 1</h3>
+                <ul class="list-group list-group-flush">
+                    {% for treatment in meal_plan.treatments.month1 %}
+                    <li class="list-group-item">{{ treatment }}</li>
+                    {% endfor %}
+                </ul>
+
+                <h3 class="card-title mt-4">Rawatan Bulan 2</h3>
+                <ul class="list-group list-group-flush">
+                    {% for treatment in meal_plan.treatments.month2 %}
+                    <li class="list-group-item">{{ treatment }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Breakfast -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title">{{ meal_plan.breakfast.title }}</h3>
+                
+                <div class="instructions mb-4">
+                    {% for instruction in meal_plan.breakfast.instructions %}
+                    <p>{{ instruction }}</p>
+                    {% endfor %}
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h3 class="h5">Recommendations</h3>
-                        <div class="card result-card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <h4 class="h6"><i class="fas fa-utensils me-2"></i>Dietary</h4>
-                                        <ul class="list-unstyled">
-                                            {% for rec in dietary_recommendations %}
-                                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ rec }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <h4 class="h6"><i class="fas fa-running me-2"></i>Lifestyle</h4>
-                                        <ul class="list-unstyled">
-                                            {% for rec in lifestyle_recommendations %}
-                                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ rec }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <h4 class="h6"><i class="fas fa-heartbeat me-2"></i>Medical</h4>
-                                        <ul class="list-unstyled">
-                                            {% for rec in medical_recommendations %}
-                                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>{{ rec }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="options">
+                    {% for option in meal_plan.breakfast.options %}
+                    <div class="option mb-3">
+                        <h4>{{ option.title }}</h4>
+                        <ul class="list-group list-group-flush">
+                            {% for item in option['items'] %}
+                            <li class="list-group-item">{{ item }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
-                </div>
-
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <a href="/meal-plan" class="btn btn-primary">
-                        <i class="fas fa-utensils me-2"></i>Generate Meal Plan
-                    </a>
-                    <a href="/analyze" class="btn btn-outline-secondary">
-                        <i class="fas fa-redo me-2"></i>New Analysis
-                    </a>
+                    {% endfor %}
                 </div>
             </div>
         </div>
+
+        <!-- Mediterranean Diet -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title">{{ meal_plan.mediterranean_diet.title }}</h3>
+                
+                <div class="guidelines mb-4">
+                    <h4>Panduan</h4>
+                    <ul class="list-group list-group-flush">
+                        {% for guideline in meal_plan.mediterranean_diet.guidelines %}
+                        <li class="list-group-item">{{ guideline }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="menu">
+                    <h4>Menu</h4>
+                    <ul class="list-group list-group-flush">
+                        {% for item in meal_plan.mediterranean_diet.menu['items'] %}
+                        <li class="list-group-item">{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="notes mt-3">
+                        {% for note in meal_plan.mediterranean_diet.menu['notes'] %}
+                        <p class="text-muted">{{ note }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal Timing -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title">{{ meal_plan.meal_timing.title }}</h3>
+                <p>{{ meal_plan.meal_timing.instructions }}</p>
+                <ul class="list-group list-group-flush">
+                    {% for time in meal_plan.meal_timing.schedule %}
+                    <li class="list-group-item">{{ time }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Waist Measurement -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title">{{ meal_plan.waist_measurement.title }}</h3>
+                <form class="measurement-form">
+                    {% for week in meal_plan.waist_measurement.weeks %}
+                    <div class="form-group row">
+                        <label class="col-sm-6 col-form-label">{{ week }}</label>
+                        <div class="col-sm-6">
+                            <input type="number" class="form-control" step="0.1" placeholder="inchi">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </form>
+            </div>
+        </div>
+
+        <!-- Exercise Plan -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title">{{ meal_plan.exercise_plan.title }}</h3>
+                {% for option_group in meal_plan.exercise_plan.options %}
+                <div class="option-group mb-3">
+                    <ul class="list-group list-group-flush">
+                        {% for option in option_group %}
+                        <li class="list-group-item">{{ option }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sticky Button Section -->
+        <div class="submit-section sticky-bottom bg-white py-3">
+            <div class="container d-flex justify-content-center align-items-center">
+                 <!-- Go Back Button -->
+                <button class="btn btn-secondary me-2" onclick="history.back()">Go Back</button>
+
+                <!-- Export Button -->
+                <button class="btn btn-primary" onclick="exportToPDF('{{ input_data['Nama'] | d('PCOS User') }}')">Export to PDF</button>
+            </div>
+        </div>
+
     </div>
+    {% else %}
+    <div class="alert alert-warning">
+        No meal plan available for this PCOS type.
+    </div>
+    {% endif %}
 </div>
+
+<!-- Add PDF export functionality -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function exportToPDF(userName) {
+    const element = document.documentElement;
+    const opt = {
+        margin: 1,
+        filename: userName + ' Diet Plan.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
+}
+</script>
 {% endblock %} 

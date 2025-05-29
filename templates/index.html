@@ -1,53 +1,101 @@
 {% extends "base.html" %}
 
-{% block title %}Home - PCOS Analysis System{% endblock %}
+{% block title %}PCOS Data Analysis Platform{% endblock %}
 
 {% block content %}
-<div class="row align-items-center">
-    <div class="col-md-6">
-        <h1 class="display-4 mb-4">Welcome to PCOS Analysis System</h1>
-        <p class="lead mb-4">
-            A comprehensive tool for analyzing PCOS symptoms and generating personalized recommendations.
-        </p>
-        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-            <a href="/analyze" class="btn btn-primary btn-lg px-4 me-md-2">
-                <i class="fas fa-chart-line me-2"></i>Start Analysis
-            </a>
-            <a href="/training" class="btn btn-outline-secondary btn-lg px-4">
-                <i class="fas fa-note me-2"></i>Model Training
-            </a>
+<div class="container py-5">
+    <div class="row align-items-center">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold lh-1 mb-3">PCOS Data Analysis Platform</h1>
+            <p class="lead">An advanced data analytics and visualization platform for PCOS research and analysis.</p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4">
+                <a href="/training" class="btn btn-primary btn-lg px-4">
+                    <i class="fas fa-graduation-cap me-2"></i>Data Training
+                </a>
+                <a href="/analyze" class="btn btn-outline-secondary btn-lg px-4 me-md-2">
+                    <i class="fas fa-chart-line me-2"></i>Data Analysis
+                </a>
+                <a href="/visualize" class="btn btn-outline-secondary btn-lg px-4 me-md-2">
+                    <i class="fas fa-chart-bar me-2"></i>Visualizations
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <img src="{{ url_for('static', path='images/data-analysis.svg') }}" class="img-fluid" alt="Data Analysis Illustration">
         </div>
     </div>
-</div>
 
-<div class="row mt-5">
-    <div class="col-12">
-        <h2 class="text-center mb-4">Key Features</h2>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center">
-                <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
-                <h3 class="card-title h5">Symptom Analysis</h3>
-                <p class="card-text">Comprehensive analysis of PCOS symptoms and risk factors.</p>
-            </div>
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Data Science Features</h2>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center">
-                <i class="fas fa-utensils fa-3x text-primary mb-3"></i>
-                <h3 class="card-title h5">Meal Planning</h3>
-                <p class="card-text">Personalized meal plans based on your PCOS type and preferences.</p>
+
+    <div class="row g-4 py-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title h5">
+                        <i class="fas fa-calculator text-primary me-2"></i>
+                        Statistical Analysis
+                    </h3>
+                    <p class="card-text">Perform comprehensive statistical analysis on PCOS data, including correlation analysis, distribution analysis, and summary statistics.</p>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body text-center">
-                <i class="fas fa-file-medical fa-3x text-primary mb-3"></i>
-                <h3 class="card-title h5">Detailed Reports</h3>
-                <p class="card-text">Get comprehensive reports and recommendations for managing PCOS.</p>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title h5">
+                        <i class="fas fa-chart-pie text-primary me-2"></i>
+                        Data Visualization
+                    </h3>
+                    <p class="card-text">Create interactive visualizations including scatter plots, histograms, box plots, and correlation heatmaps.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title h5">
+                        <i class="fas fa-brain text-primary me-2"></i>
+                        Pattern Recognition
+                    </h3>
+                    <p class="card-text">Identify patterns and relationships in PCOS data through advanced data analysis techniques.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title h5">
+                        <i class="fas fa-database text-primary me-2"></i>
+                        Data Management
+                    </h3>
+                    <p class="card-text">Efficiently manage and process large datasets with our robust data handling capabilities.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title h5">
+                        <i class="fas fa-tachometer-alt text-primary me-2"></i>
+                        Insights Dashboard
+                    </h3>
+                    <p class="card-text">Access a comprehensive dashboard with key insights and metrics from your PCOS data analysis.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h3 class="card-title h5">
+                        <i class="fas fa-file-export text-primary me-2"></i>
+                        Data Export
+                    </h3>
+                    <p class="card-text">Export your analysis results and visualizations in various formats for further research and reporting.</p>
+                </div>
             </div>
         </div>
     </div>

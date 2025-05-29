@@ -1,235 +1,303 @@
 {% extends "base.html" %}
 
-{% block title %}Model Training - PCOS Analysis System{% endblock %}
+{% block title %}Model Training - PCOS Analysis Platform{% endblock %}
 
 {% block extra_css %}
 <style>
+    .upload-section {
+        transition: var(--transition);
+    }
+    .upload-section:hover {
+        transform: translateY(-5px);
+    }
+    .training-progress-section {
+        transition: var(--transition);
+    }
+    .training-progress-section:hover {
+        transform: translateY(-5px);
+    }
     .progress {
         height: 25px;
     }
     .progress-bar {
         transition: width 0.5s ease-in-out;
     }
-    #trainingStatus {
-        display: none;
-        opacity: 0;
-        transition: opacity 0.5s ease-in-out;
-    }
-    #trainingStatus.visible {
-        display: block;
-        opacity: 1;
-    }
-    .btn-group {
-        display: flex;
-        gap: 10px;
-    }
-    #trainingResults {
-        display: none;
-    }
     .metrics-card {
-        margin-top: 20px;
+        transition: var(--transition);
     }
-    .metrics-value {
-        font-size: 1.2em;
+    .metrics-card:hover {
+        transform: translateY(-5px);
+    }
+    .feature-importance {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .metric-value {
+        font-size: 1.2rem;
         font-weight: bold;
-        color: #6c5ce7;
+        color: var(--primary-color);
+    }
+    .parameter-value {
+        font-family: monospace;
+        background-color: var(--light-bg);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Model Training</h1>
-
-<!-- File Upload Section -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Upload Training Data</h5>
-    </div>
-    <div class="card-body">
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="trainingFile" class="form-label">Select Training Data Files</label>
-                <input type="file" class="form-control" id="trainingFile" name="files" accept=".docx,.csv,.xlsx" multiple>
-                <div class="form-text">You can select multiple files by holding Ctrl (Windows) or Command (Mac) while clicking.</div>
-            </div>
-            <div class="btn-group">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-upload me-2"></i>Upload File
-                </button>
-                <button type="button" id="startTrainingBtn" class="btn btn-success" disabled>
-                    <i class="fas fa-play me-2"></i>Start Training
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Training Status Section -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Training Status</h5>
-    </div>
-    <div class="card-body">
-        <div id="trainingStatus">
-            <div class="mb-3">
-                <div class="d-flex justify-content-between mb-2">
-                    <span id="statusText">Status: Idle</span>
-                    <span id="progressText">0%</span>
-                </div>
-                <div class="progress">
-                    <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
-                </div>
-            </div>
-            <div id="lastTrained" class="text-muted"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Training Results Section -->
-<div id="trainingResults" class="card mb-4">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Training Results</h5>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card metrics-card">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Training Accuracy</h6>
-                        <p class="metrics-value" id="trainAccuracy">-</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card metrics-card">
-                    <div class="card-body">
-                        <h6 class="card-subtitle mb-2 text-muted">Test Accuracy</h6>
-                        <p class="metrics-value" id="testAccuracy">-</p>
-                    </div>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h2 class="h4 mb-0"><i class="fas fa-brain me-2"></i>Model Training</h2>
                 </div>
             </div>
         </div>
-        <div class="mt-4">
-            <h6>Classification Report</h6>
-            <pre id="classificationReport" class="bg-light p-3 rounded"></pre>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow upload-section">
+                <div class="card-header">
+                    <h3 class="h5 mb-0"><i class="fas fa-upload me-2"></i>Upload Training Data</h3>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Select Excel File</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Progress Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow training-progress-section">
+                <div class="card-header">
+                    <h3 class="h5 mb-0"><i class="fas fa-cogs me-2"></i>Training Progress</h3>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div id="trainingStatus" class="alert alert-info">
+                        Ready to start training
+                    </div>
+                    <button id="startTrainingBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-play me-2"></i>Start Training
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Metrics Section -->
+    <div id="metricsSection" class="row mb-4" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow metrics-card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0"><i class="fas fa-chart-bar me-2"></i>Model Performance Metrics</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Accuracy Metrics -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h4 class="h6 mb-0">Accuracy Metrics</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h5 class="h6">Training Accuracy</h5>
+                                        <div id="trainingAccuracy" class="metric-value">-</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h5 class="h6">Test Accuracy</h5>
+                                        <div id="testAccuracy" class="metric-value">-</div>
+                                    </div>
+                                    <div>
+                                        <h5 class="h6">Cross-Validation</h5>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <small>Mean</small>
+                                                <div id="cvMean" class="metric-value">-</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small>Std Dev</small>
+                                                <div id="cvStd" class="metric-value">-</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Best Parameters -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h4 class="h6 mb-0">Best Parameters</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div id="bestParams">
+                                        <div class="mb-2">
+                                            <small>Number of Trees</small>
+                                            <div id="nEstimators" class="parameter-value">-</div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small>Max Depth</small>
+                                            <div id="maxDepth" class="parameter-value">-</div>
+                                        </div>
+                                        <div>
+                                            <small>Min Samples Split</small>
+                                            <div id="minSamplesSplit" class="parameter-value">-</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feature Importance -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="h6 mb-0">Top 10 Important Features</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div id="featureImportance" class="feature-importance">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Feature</th>
+                                                        <th>Importance</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="featureImportanceBody">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    // Function to update training status
-    function updateTrainingStatus() {
-        fetch('/training-status')
-            .then(response => response.json())
-            .then(data => {
-                const progressBar = document.getElementById('progressBar');
-                const progressText = document.getElementById('progressText');
-                const statusText = document.getElementById('statusText');
-                const startTrainingBtn = document.getElementById('startTrainingBtn');
-                const lastTrained = document.getElementById('lastTrained');
-                const trainingStatus = document.getElementById('trainingStatus');
-                const trainingResults = document.getElementById('trainingResults');
-
-                // Show training status section when training starts
-                if (data.is_training && !trainingStatus.classList.contains('visible')) {
-                    trainingStatus.classList.add('visible');
-                }
-
-                progressBar.style.width = `${data.progress}%`;
-                progressBar.setAttribute('aria-valuenow', data.progress);
-                progressText.textContent = `${data.progress}%`;
-                statusText.textContent = `Status: ${data.status}`;
-
-                if (data.last_trained) {
-                    const date = new Date(data.last_trained);
-                    lastTrained.textContent = `Last trained: ${date.toLocaleString()}`;
-                }
-
-                startTrainingBtn.disabled = data.is_training;
-                if (data.is_training) {
-                    startTrainingBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Training in Progress...';
-                } else {
-                    startTrainingBtn.innerHTML = '<i class="fas fa-play me-2"></i>Start Training';
-                }
-
-                // Show results when training is completed
-                if (data.status === 'completed' && data.metrics) {
-                    trainingResults.style.display = 'block';
-                    document.getElementById('trainAccuracy').textContent = 
-                        `${(data.metrics.train_accuracy * 100).toFixed(2)}%`;
-                    document.getElementById('testAccuracy').textContent = 
-                        `${(data.metrics.accuracy * 100).toFixed(2)}%`;
-                    
-                    // Format and display classification report
-                    const report = data.metrics.classification_report;
-                    let reportText = '';
-                    for (const [label, metrics] of Object.entries(report)) {
-                        if (label !== 'accuracy') {
-                            reportText += `Class ${label}:\n`;
-                            reportText += `  Precision: ${(metrics.precision * 100).toFixed(2)}%\n`;
-                            reportText += `  Recall: ${(metrics.recall * 100).toFixed(2)}%\n`;
-                            reportText += `  F1-score: ${(metrics.f1_score * 100).toFixed(2)}%\n`;
-                            reportText += `  Support: ${metrics.support}\n\n`;
-                        }
+    $(document).ready(function() {
+        // Handle file upload
+        $('#uploadForm').on('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            $.ajax({
+                url: '/training/upload',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        $('#startTrainingBtn').prop('disabled', false);
+                        $('#trainingStatus').removeClass('alert-danger').addClass('alert-success')
+                            .html('<i class="fas fa-check-circle me-2"></i>Data uploaded successfully. Ready to start training.');
+                    } else {
+                        $('#trainingStatus').removeClass('alert-success').addClass('alert-danger')
+                            .html('<i class="fas fa-exclamation-circle me-2"></i>' + response.error);
                     }
-                    document.getElementById('classificationReport').textContent = reportText;
+                },
+                error: function(xhr) {
+                    $('#trainingStatus').removeClass('alert-success').addClass('alert-danger')
+                        .html('<i class="fas fa-exclamation-circle me-2"></i>Error uploading file: ' + xhr.responseText);
                 }
+            });
+        });
 
-                if (data.is_training) {
-                    setTimeout(updateTrainingStatus, 1000);
+        // Handle training start
+        $('#startTrainingBtn').on('click', function() {
+            const btn = $(this);
+            btn.prop('disabled', true);
+            $('.progress-bar').css('width', '0%');
+            $('#trainingStatus').removeClass('alert-danger alert-success').addClass('alert-info')
+                .html('<i class="fas fa-spinner fa-spin me-2"></i>Training in progress...');
+            
+            // Get the filename from the file input
+            const filename = $('#file')[0].files[0].name;
+            
+            $.ajax({
+                url: '/training/start',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ filename: filename }),
+                success: function(response) {
+                    if (response.success) {
+                        $('.progress-bar').css('width', '100%');
+                        $('#trainingStatus').removeClass('alert-info').addClass('alert-success')
+                            .html('<i class="fas fa-check-circle me-2"></i>' + response.message);
+                        
+                        // Update metrics
+                        updateMetrics(response.metrics);
+                    } else {
+                        $('#trainingStatus').removeClass('alert-info').addClass('alert-danger')
+                            .html('<i class="fas fa-exclamation-circle me-2"></i>' + response.error);
+                    }
+                },
+                error: function(xhr) {
+                    $('#trainingStatus').removeClass('alert-info').addClass('alert-danger')
+                        .html('<i class="fas fa-exclamation-circle me-2"></i>Error during training: ' + xhr.responseText);
+                },
+                complete: function() {
+                    btn.prop('disabled', false);
                 }
-            })
-            .catch(error => console.error('Error:', error));
-    }
+            });
+        });
 
-    // Handle file upload
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const fileInput = document.getElementById('trainingFile');
-        const files = fileInput.files;
-        const formData = new FormData();
-        
-        // Append each file to the FormData
-        for (let i = 0; i < files.length; i++) {
-            formData.append('files', files[i]);
+        function updateMetrics(metrics) {
+            // Show metrics section
+            $('#metricsSection').show();
+
+            // Update accuracy metrics
+            $('#trainingAccuracy').text(metrics.training_accuracy);
+            $('#testAccuracy').text(metrics.test_accuracy);
+            $('#cvMean').text(metrics.cross_validation_scores.mean);
+            $('#cvStd').text(metrics.cross_validation_scores.std);
+
+            // Update best parameters
+            $('#nEstimators').text(metrics.best_parameters.n_estimators);
+            $('#maxDepth').text(metrics.best_parameters.max_depth || 'None');
+            $('#minSamplesSplit').text(metrics.best_parameters.min_samples_split);
+
+            // Update feature importance
+            const tbody = $('#featureImportanceBody');
+            tbody.empty();
+            metrics.feature_importance.forEach(feature => {
+                tbody.append(`
+                    <tr>
+                        <td>${feature.feature}</td>
+                        <td>${(feature.importance * 100).toFixed(2)}%</td>
+                    </tr>
+                `);
+            });
         }
-
-        fetch('/upload-training-data', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(`${files.length} file(s) uploaded successfully!`);
-            document.getElementById('startTrainingBtn').disabled = false;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error uploading files');
-        });
     });
-
-    // Handle start training
-    document.getElementById('startTrainingBtn').addEventListener('click', function() {
-        fetch('/start-training', {
-            method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Show training status section immediately when training starts
-            const trainingStatus = document.getElementById('trainingStatus');
-            trainingStatus.classList.add('visible');
-            updateTrainingStatus();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error starting training');
-        });
-    });
-
-    // Initial status update
-    updateTrainingStatus();
 </script>
 {% endblock %} 

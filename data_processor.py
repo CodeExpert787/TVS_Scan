@@ -3,8 +3,6 @@ import numpy as np
 from typing import List, Dict, Tuple
 from models.pcos_patient import PatientData, Outcome
 import os
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
 import docx
 import json
 import re
@@ -17,18 +15,27 @@ class DataProcessor:
             data_dir: Directory containing the PCOS patient data files
         """
         self.data_dir = data_dir
-        self.scaler = StandardScaler()
-        self.label_encoder = LabelEncoder()
         
-    def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def load_data(self) -> List[Dict]:
         """
         Load and process all data files
         Returns:
-            Tuple of (training_data, test_data) DataFrames
+            List of dictionaries containing patient data
         """
         all_data = []
         
-        # Process all files in the directory
+        # Process Excel file first
+        excel_path = os.path.join(self.data_dir, 'PCOS Profilling(Responses).xlsx')
+        if os.path.exists(excel_path):
+            try:
+                df = pd.read_excel(excel_path)
+                # Convert DataFrame to list of dictionaries
+                excel_data = df.to_dict('records')
+                all_data.extend(excel_data)
+            except Exception as e:
+                print(f"Error processing Excel file: {str(e)}")
+        
+        # Process docx files
         for filename in os.listdir(self.data_dir):
             if filename.endswith('.docx'):
                 file_path = os.path.join(self.data_dir, filename)
@@ -39,27 +46,55 @@ class DataProcessor:
         if not all_data:
             raise ValueError("No valid data files found in the data directory")
         
-        # Convert to DataFrame
-        df = pd.DataFrame(all_data)
-        
-        # Split into training and test sets (90% training, 10% test)
-        train_data, test_data = train_test_split(
-            df, 
-            test_size=0.1, 
-            random_state=42
-        )
-        
-        return train_data, test_data
+        return all_data
+    
+    def get_excel_columns(self) -> List[str]:
+        """
+        Get column names from the Excel file
+        Returns:
+            List of column names
+        """
+        excel_path = os.path.join(self.data_dir, 'PCOS Profilling(Responses).xlsx')
+        if os.path.exists(excel_path):
+            try:
+                df = pd.read_excel(excel_path)
+                return df.columns.tolist()
+            except Exception as e:
+                print(f"Error reading Excel columns: {str(e)}")
+        return []
+    
+    def get_excel_preview(self, n_rows: int = 5) -> Dict:
+        """
+        Get preview of Excel data
+        Args:
+            n_rows: Number of rows to preview
+        Returns:
+            Dictionary containing preview data and column info
+        """
+        excel_path = os.path.join(self.data_dir, 'PCOS Profilling(Responses).xlsx')
+        if os.path.exists(excel_path):
+            try:
+                df = pd.read_excel(excel_path)
+                preview = {
+                    'columns': df.columns.tolist(),
+                    'data': df.head(n_rows).to_dict('records'),
+                    'total_rows': len(df),
+                    'total_columns': len(df.columns)
+                }
+                return preview
+            except Exception as e:
+                print(f"Error getting Excel preview: {str(e)}")
+        return {}
     
     def _extract_outcome(self, text: str) -> str:
         """Extract PCOS type from text."""
         if "PCOS Rintangan Insulin + PCOS Adrenal" in text:
-            return PCOSType.COMBINED.value
+            return "Combined"
         elif "PCOS Rintangan Insulin" in text:
-            return PCOSType.INSULIN_RESISTANCE.value
+            return "Rintangan Insulin"
         elif "PCOS Adrenal" in text:
-            return PCOSType.ADRENAL.value
-        return PCOSType.UNKNOWN.value
+            return "Adrenal"
+        return "Unknown"
 
     def _extract_healthy_weight_range(self, text: str) -> tuple[float, float]:
         """Extract healthy weight range from text."""
@@ -107,7 +142,7 @@ class DataProcessor:
                 'bmi': 0.0,
                 'healthy_weight_range': (0.0, 0.0),
                 'water_intake': 0.0,
-                'outcome': PCOSType.UNKNOWN.value,
+                'outcome': 'Unknown',
                 'waist_measurement': 0.0
             }
             
@@ -164,43 +199,4 @@ class DataProcessor:
             
         except Exception as e:
             print(f"Error processing file {file_path}: {str(e)}")
-            return None
-    
-    def preprocess_data(self, df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Preprocess the data for model training
-        Args:
-            df: Input DataFrame
-        Returns:
-            Tuple of (features, labels)
-        """
-        # Extract features
-        features = df[['age', 'weight', 'height', 'bmi', 'water_intake', 'waist_measurement']].values
-        
-        # Scale features
-        scaled_features = self.scaler.fit_transform(features)
-        
-        # Extract and encode labels (PCOS type)
-        labels = self.label_encoder.fit_transform(df['outcome'].values)
-        
-        return scaled_features, labels
-    
-    def save_processed_data(self, train_data: pd.DataFrame, test_data: pd.DataFrame, output_dir: str):
-        """
-        Save processed data to files
-        Args:
-            train_data: Training data DataFrame
-            test_data: Test data DataFrame
-            output_dir: Directory to save processed data
-        """
-        os.makedirs(output_dir, exist_ok=True)
-        
-        train_data.to_csv(os.path.join(output_dir, 'train_data.csv'), index=False)
-        test_data.to_csv(os.path.join(output_dir, 'test_data.csv'), index=False)
-        
-        # Save scaler and label encoder for later use
-        import joblib
-        joblib.dump({
-            'scaler': self.scaler,
-            'label_encoder': self.label_encoder
-        }, os.path.join(output_dir, 'preprocessors.joblib')) 
+            return None 
