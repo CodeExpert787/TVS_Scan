@@ -5,3 +5,4 @@ pandas
 numpy
 python-docx
 jinja2 
+openpyxl
