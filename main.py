@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from models.pcos_patient import PatientData, Outcome
-from meal_plan_generator import MealPlanGenerator
 from data_processor import DataProcessor
 from typing import List, Dict, Optional
 import uvicorn
@@ -50,7 +49,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Initialize components
-meal_plan_generator = MealPlanGenerator()
 data_processor = DataProcessor('data/raw')
 
 # Create necessary directories
